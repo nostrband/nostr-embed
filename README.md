@@ -32,6 +32,6 @@ PRs are welcome.
 
 ### Todo – aka, stuff you can help with.
 
-* The bundle size is WAYYY too big right now because of the nostr-tools library we're using to fetch data. We're looking into ways to make it much smaller.
-* We have zero tests so far
+* The bundle size is WAYYY too big right now because of the [nostr-tools](https://github.com/nbd-wtf/nostr-tools) library we're using to fetch data. We're looking into ways to make it much smaller without sacrificing signature verification.
+* We have zero tests so far.
 * We need to implement pooling of relays so that we can check several instead of just one.
