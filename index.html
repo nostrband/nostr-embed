@@ -1,0 +1,36 @@
+<!-- This file is automatically copied to the /dist directory on build for dev/testing. -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Development</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script defer="defer" src="nostr-embed.js"></script>
+  </head>
+  <body>
+    <h1>Testing the Nostr Embed</h1>
+
+    <div id="nostr-embed"></div>
+
+    <script>
+      !(function () {
+        const n = document.createElement('script');
+        n.type = 'text/javascript';
+        n.async = !0;
+        n.src = 'nostr-embed.js';
+        n.onload = function () {
+          nostrEmbed.init(
+            '10c9fb11f742e6dc05d8bbcb4af790a4453f1bc046e40ca1b5385996c63d93ba',
+            '#nostr-embed'
+          );
+        };
+        const a = document.getElementsByTagName('script')[0];
+        a.parentNode.insertBefore(n, a);
+      })();
+    </script>
+  </body>
+</html>
+
+<!-- jb55 note: 10c9fb11f742e6dc05d8bbcb4af790a4453f1bc046e40ca1b5385996c63d93ba -->
+<!-- derek note: 16ad5201e627c7e50356456ae0ee107fe9a1a9694db8709b4cad5954191b0c36 -->

@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.nostrEmbedCard {
+  @apply ne-px-4 ne-py-5 ne-pb-3 ne-bg-[#fcfcfc] ne-rounded-lg ne-max-w-full md:ne-max-w-[600px] ne-flex ne-flex-col ne-gap-8;
+  @apply ne-font-sans;
+  border: 1px solid #ddd;
+}
+
+.cardContent {
+  @apply ne-text-lg;
+}
+
+.cardProfile {
+  @apply ne-flex ne-flex-row ne-gap-4 ne-items-center;
+}
+
+.profileImg {
+  @apply ne-w-12 ne-h-12 ne-rounded-full;
+}
+
+.profileDetails {
+  @apply ne-flex ne-flex-col;
+}
+
+.profileName {
+  @apply ne-text-lg ne-font-bold;
+}
+
+.profilePkey {
+  @apply ne-flex ne-flex-row ne-gap-2 ne-items-center;
+}
+
+.copyKeyBtn {
+  @apply ne-p-0 ne-border-0 ne-bg-transparent ne-cursor-pointer ne-relative ne-flex ne-flex-row ne-align-middle;
+}
+
+.copyKeyBtn,
+.linkCopyBtn {
+  border: none;
+  background-color: transparent;
+}
+
+.copyKeyBtn:hover .copyIcon {
+  @apply ne-text-gray-600;
+}
+
+.pkey {
+  @apply ne-overflow-hidden ne-text-ellipsis ne-whitespace-nowrap ne-max-w-[30%] md:ne-max-w-sm;
+}
+
+.cardMeta {
+  @apply ne-flex ne-flex-col ne-gap-1 md:ne-gap-2;
+}
+
+hr {
+  @apply ne-w-full ne-opacity-30;
+}
+
+.cardInteractions {
+  @apply ne-flex ne-flex-row ne-justify-between md:ne-justify-start md:ne-gap-12;
+}
+
+.interactionContainer {
+  @apply ne-flex ne-flex-row ne-items-center ne-gap-2;
+}
+
+.replyIcon,
+.repostIcon,
+.heartIcon,
+.linkIcon,
+.copyIcon {
+  @apply ne-text-gray-900 ne-block ne-w-5 ne-h-5;
+}
+
+.linkCopyBtn {
+  @apply ne-text-gray-900 ne-no-underline ne-flex ne-flex-row ne-items-center ne-gap-2 ne-cursor-pointer ne-relative;
+}
+
+.linkCopyBtn:hover,
+.linkCopyBtn:hover .copyIcon {
+  @apply ne-text-gray-600;
+}
+
+.tooltip,
+.linkCopyBtn:hover .tooltip {
+  @apply ne-text-gray-400 ne-text-sm;
+}
+
+.tooltip {
+  @apply ne-hidden md:ne-flex md:ne-visible;
+}
+
+.displayText {
+  @apply ne-hidden md:ne-flex md:ne-visible md:ne-text-sm;
+}
+
+.copyText {
+  @apply ne-hidden;
+}
