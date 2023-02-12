@@ -21,6 +21,7 @@ Just add the following snippet to your site and change the parameters passed to 
   })();
 </script>
 ```
+*NB: We don't yet have a CDN-hosted option so you need to download the `nostr-embed.js` file from the `/dist` folder and host it yourself*
 
 ### Parameters
 1. **Required** (String): The first param is the hex ID of the note you'd like to embed.
