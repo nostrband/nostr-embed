@@ -1,10 +1,10 @@
-import { nip19 } from 'nostr-tools';
 import HeartIcon from './icons/heartIcon';
 import ReplyIcon from './icons/replyIcon';
 import RepostIcon from './icons/repostIcon';
 import LinkIcon from './icons/linkIcon';
 import style from './style.css';
 import CopyText from './copyText';
+import { getNoteId } from '../common';
 
 function Meta({ note, repliesCount, repostsCount, likesCount }) {
   let date, encodedNoteId, formattedDate;
@@ -19,7 +19,7 @@ function Meta({ note, repliesCount, repostsCount, likesCount }) {
       month: 'short',
       day: 'numeric',
     });
-    encodedNoteId = nip19.noteEncode(note.id);
+    encodedNoteId = getNoteId(note.id);
   }
 
   return (
