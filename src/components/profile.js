@@ -1,12 +1,12 @@
-import { nip19 } from 'nostr-tools';
 import KeyIcon from './icons/keyIcon';
 import style from './style.css';
 import CopyText from './copyText';
+import { getNpub } from '../common';
 
 function Profile({ profilePkey, profile }) {
   let cachedProfilePicture, encodedProfilePkey;
   if (profilePkey && profile) {
-    encodedProfilePkey = nip19.npubEncode(profilePkey);
+    encodedProfilePkey = getNpub(profilePkey);
     cachedProfilePicture = `https://media.nostr.band/thumbs/${profilePkey.slice(
       -4
     )}/${profilePkey}-picture-64`;

@@ -1,5 +1,5 @@
 import { Component } from 'preact';
-import { relayInit } from 'nostr-tools';
+import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
 import style from './style.css';
@@ -19,31 +19,167 @@ class NosrtEmbed extends Component {
     };
   }
 
-  async componentDidMount() {
-    let relay = relayInit(this.state.relay);
-    await relay.connect();
-
-    relay.on('connect', () => {
-      this.fetchNote({ relay });
-      console.log(`Connected to Nostr relay: ${relay.url}`);
-    });
-
-    relay.on('error', () => {
-      console.log(`Failed to connect to Nostr relay: ${relay.url}`);
+  sha256(string) {
+    const utf8 = new TextEncoder().encode(string);
+    return secp.utils.sha256(utf8).then((hashBuffer) => {
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((bytes) => bytes.toString(16).padStart(2, '0'))
+        .join('');
+      return hashHex;
     });
   }
 
-  async fetchNote({ relay }) {
-    relay
-      .get({ ids: [this.state.noteId] })
+  async getNostrEventID(m) {
+    const a = [
+      0,
+      m.pubkey,
+      m.created_at,
+      m.kind,
+      m.tags,
+      m.content,
+    ];
+    const s = JSON.stringify (a);
+    const h = await this.sha256(s);
+    return h;
+  }
+
+  verifyNostrSignature(event) {
+    return secp.schnorr.verify(event.sig, event.id, event.pubkey);
+  }
+
+  async validateNostrEvent(event) {
+    if (event.id !== await this.getNostrEventID(event)) return false
+    if (typeof event.content !== 'string') return false
+    if (typeof event.created_at !== 'number') return false
+
+    if (!Array.isArray(event.tags)) return false
+    for (let i = 0; i < event.tags.length; i++) {
+      let tag = event.tags[i]
+      if (!Array.isArray(tag)) return false
+      for (let j = 0; j < tag.length; j++) {
+        if (typeof tag[j] === 'object') return false
+      }
+    }
+
+    return true
+  }
+
+  componentDidMount() {
+    const socket = new WebSocket(this.state.relay);
+
+    socket.onopen = () => {
+      this.fetchNote({ socket });
+      console.log(`Connected to Nostr relay: ${socket.url}`);
+    };
+
+    socket.onerror = () => {
+      console.log(`Failed to connect to Nostr relay: ${socket.url}`);
+    };
+
+    const subs = {};
+    socket.onmessage = async (e) => {
+      try {
+        const d = JSON.parse (e.data);
+        if (!d || !d.length) throw "Bad reply from relay"
+
+        if (d[0] == "NOTICE" && d.length == 2) {
+          console.log("notice from", socket.url, d[1]);
+	  return;
+        }
+
+        if (d[0] == "EOSE" && d.length > 1) {
+          if (d[1] in subs)
+            subs[d[1]].done();
+          return;
+        }
+
+        if (d[0] != "EVENT" || d.length < 3) throw "Unknown reply from relay";
+
+        const ev = d[2];
+        if (!ev.id
+            || !ev.pubkey
+            || !ev.sig
+            || !await this.validateNostrEvent(ev)
+            || !this.verifyNostrSignature(ev)
+           ) {
+	  throw "Bad event from relay";
+        }
+
+        if (d[1] in subs) {
+          const s = subs[d[1]];
+          s.events.push(ev);
+          if (s.sub.limit && s.sub.limit == 1)
+            s.done();
+        }
+      } catch(error) {
+        console.log("relay", socket.url, "bad message", e, "error", error);
+        err(error);
+      }
+    };
+
+    socket.listEvents = ( { sub, ok, err} ) => {
+      let id = "embed-" + Math.random();
+      const req = ["REQ", id, sub];
+      socket.send(JSON.stringify(req));
+
+      const close = () => {
+        const sub_id = id;
+        id = null; 
+        socket.send(JSON.stringify(["CLOSE", sub_id]));
+        delete subs[sub_id];
+      };
+
+      const events = [];
+      const done = () => {
+        if (!id) return;
+        clearTimeout(to);
+        close();
+        ok(events);
+      };
+
+      const to = setTimeout(function () {
+        // tell relay we're no longer interested
+        close();
+
+        // maybe relay w/o EOSE support?
+        if (events.length) {
+          done();
+        } else {
+          err("timeout on relay", socket.url);
+        }
+      }, (sub.limit && sub.limit == 1) ? 2000 : 4000);
+
+      subs[id] = { ok, err, events, done, sub };
+    };
+  }
+
+  getEvent({ socket, sub, ok, err }) {
+    return new Promise((ok, err) => {
+      sub.limit = 1;
+      socket.listEvents({ sub, ok: (events) => {
+        ok(events ? events[0] : null);
+      }, err });
+    });
+  }
+
+  listEvents({ socket, sub }) {
+    return new Promise((ok, err) => {
+      socket.listEvents({ sub, ok, err });
+    });
+  }
+
+  fetchNote({ socket }) {
+    const sub = { ids: [this.state.noteId], kinds: [1] };
+    this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
           this.setState({
             note: event,
             profilePkey: event.pubkey,
           });
-          this.fetchProfile({ relay, profilePkey: event.pubkey });
-          this.fetchMeta({ relay, noteId: this.state.noteId });
+          this.fetchProfile({ socket, profilePkey: event.pubkey });
+          this.fetchMeta({ socket, noteId: this.state.noteId });
         } else {
           console.log("Error: We can't find that note on this relay");
         }
@@ -53,28 +189,23 @@ class NosrtEmbed extends Component {
       });
   }
 
-  async fetchProfile({ relay, profilePkey }) {
-    relay
-      .list([{ kinds: [0], authors: [profilePkey] }])
-      .then((events) => {
-        events.sort((a, b) => b.created_at - a.created_at);
-        let profile = events[0];
-        let parsedProfile = JSON.parse(profile.content);
-        this.setState({ profile: parsedProfile });
+  fetchProfile({ socket, profilePkey }) {
+    const sub = { kinds: [0], authors: [profilePkey] };
+    this.getEvent({ socket, sub })
+      .then((event) => {
+        if (event) {
+          let parsedProfile = JSON.parse(event.content);
+          this.setState({ profile: parsedProfile });
+        }
       })
       .catch((error) => {
         console.log(`Error fetching profile: ${error}`);
       });
   }
 
-  async fetchMeta({ relay, noteId }) {
-    relay
-      .list([
-        {
-          kinds: [1, 6, 7],
-          '#e': [noteId],
-        },
-      ])
+  fetchMeta({ socket, noteId }) {
+    const sub = { kinds: [1, 6, 7], '#e': [noteId] };
+    this.listEvents({ socket, sub })
       .then((events) => {
         for (let noteEvent of events) {
           switch (noteEvent['kind']) {
