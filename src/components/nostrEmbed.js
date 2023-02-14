@@ -9,6 +9,7 @@ class NosrtEmbed extends Component {
     super(props);
     this.state = {
       noteId: props.noteId,
+      relay: props.relay || 'wss://relay.nostr.band',
       note: {},
       profile: {},
       profilePkey: '',
@@ -19,8 +20,7 @@ class NosrtEmbed extends Component {
   }
 
   async componentDidMount() {
-    // let relay = relayInit('wss://relay.nostr.band');
-    let relay = relayInit('wss://relay.damus.io');
+    let relay = relayInit(this.state.relay);
     await relay.connect();
 
     relay.on('connect', () => {
