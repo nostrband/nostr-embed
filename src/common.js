@@ -9,14 +9,12 @@ function hexToBytes(hex) {
 
 export function getNoteId(hexId) {
   const bb = hexToBytes(hexId);
-  console.log("note", hexId, bb);
   const words = bech32.toWords(bb);
   return bech32.encode('note', words, 120);
 }
 
 export function getNpub(hexPubkey) {
   const bb = hexToBytes(hexPubkey);
-  console.log("pubkey", hexPubkey, bb);
   const words = bech32.toWords(bb);
   return bech32.encode('npub', words, 120);
 }
