@@ -181,10 +181,24 @@ class NosrtEmbed extends Component {
           this.fetchMeta({ socket, noteId: this.state.noteId });
         } else {
           console.log("Error: We can't find that note on this relay");
+          this.setState({
+            note: {
+              error: true,
+              content:
+                "Sorry, we weren't able to find this note on the specified relay.",
+            },
+          });
         }
       })
       .catch((error) => {
         console.log(`Error fetching note: ${error}`);
+        this.setState({
+          note: {
+            error: true,
+            content:
+              "Sorry, there was an error fetching this note from the specified relay. Most often, this is because the relay isn't responding.",
+          },
+        });
       });
   }
 
@@ -236,7 +250,15 @@ class NosrtEmbed extends Component {
           profilePkey={this.state.profilePkey}
           profile={this.state.profile}
         />
-        <div class="cardContent">{this.state.note.content}</div>
+        <div
+          class={
+            this.state.note.error
+              ? 'cardContent ne-text-red-800'
+              : 'cardContent'
+          }
+        >
+          {this.state.note.content}
+        </div>
         <Meta
           note={this.state.note}
           likesCount={this.state.likesCount}
