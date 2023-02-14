@@ -27,6 +27,9 @@ Just add the following snippet to your site and change the parameters passed to 
 1. **Required** (String): The first param is the hex ID of the note you'd like to embed.
 2. **Optional** (String): The second param is a querySelector value for the HTML element that you'd like to embed the note into. If you don't pass this parameter, the note will be prepended to the body element.
 3. **Optional** (String): URL of the Nostr relay that you'd like to read from. If you don't pass a third param this will default to `wss://relay.nostr.band`.
+
+### Generate an embed code
+You can also [generate an embed code on this page](https://embed.nostr.band).
 ## Contributing
 
 * 👷 PRs are welcome
