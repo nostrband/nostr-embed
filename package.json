@@ -13,6 +13,9 @@
   },
   "keywords": [],
   "author": "Jeff Gardner <erskingardner@gmail.com>",
+  "contributors": [
+    "Artur Brugeman <admin@realsearch.cc>"
+  ],
   "license": "MIT",
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
