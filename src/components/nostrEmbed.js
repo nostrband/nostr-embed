@@ -58,6 +58,13 @@ class NosrtEmbed extends Component {
     return true;
   }
 
+  async isValidEvent(ev) {
+    return ev.id && ev.pubkey && ev.sig
+      && (await this.validateNostrEvent(ev))
+      && this.verifyNostrSignature(ev)
+      ;
+  }
+
   componentDidMount() {
     const socket = new WebSocket(this.state.relay);
 
@@ -71,7 +78,7 @@ class NosrtEmbed extends Component {
     };
 
     const subs = {};
-    socket.onmessage = async (e) => {
+    socket.onmessage = (e) => {
       try {
         const d = JSON.parse(e.data);
         if (!d || !d.length) throw 'Bad reply from relay';
@@ -82,28 +89,14 @@ class NosrtEmbed extends Component {
         }
 
         if (d[0] == 'EOSE' && d.length > 1) {
-          if (d[1] in subs) subs[d[1]].done();
+          if (d[1] in subs) subs[d[1]].on_event(null);
           return;
         }
 
         if (d[0] != 'EVENT' || d.length < 3) throw 'Unknown reply from relay';
 
-        const ev = d[2];
-        if (
-          !ev.id ||
-          !ev.pubkey ||
-          !ev.sig ||
-          !(await this.validateNostrEvent(ev)) ||
-          !this.verifyNostrSignature(ev)
-        ) {
-          throw 'Bad event from relay';
-        }
+        if (d[1] in subs) subs[d[1]].on_event(d[2]);
 
-        if (d[1] in subs) {
-          const s = subs[d[1]];
-          s.events.push(ev);
-          if (s.sub.limit && s.sub.limit == 1) s.done();
-        }
       } catch (error) {
         console.log('relay', socket.url, 'bad message', e, 'error', error);
         err(error);
@@ -123,6 +116,8 @@ class NosrtEmbed extends Component {
       };
 
       const events = [];
+      const queue = [];
+
       const done = () => {
         if (!id) return;
         clearTimeout(to);
@@ -136,8 +131,8 @@ class NosrtEmbed extends Component {
           close();
 
           // maybe relay w/o EOSE support?
-          if (events.length) {
-            done();
+          if (events.length || queue.length) {
+            on_event(null);
           } else {
             err('timeout on relay', socket.url);
           }
@@ -145,7 +140,23 @@ class NosrtEmbed extends Component {
         sub.limit && sub.limit == 1 ? 2000 : 4000
       );
 
-      subs[id] = { ok, err, events, done, sub };
+      const on_event = async (e) => {
+        queue.push(e);
+        if (queue.length > 1)
+          return;
+        while (queue.length) {
+          e = queue[0];
+          if (e && (await this.isValidEvent(e))) events.push(e);
+	  queue.shift(); // dequeue after we've awaited
+          if (!e || (sub.limit && sub.limit == events.length)) {
+            queue.splice(0, queue.length);
+            done();
+            break;
+          }
+        }
+      };
+
+      subs[id] = { ok, err, on_event };
     };
   }
 
