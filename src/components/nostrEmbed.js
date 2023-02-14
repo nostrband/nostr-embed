@@ -31,15 +31,8 @@ class NosrtEmbed extends Component {
   }
 
   async getNostrEventID(m) {
-    const a = [
-      0,
-      m.pubkey,
-      m.created_at,
-      m.kind,
-      m.tags,
-      m.content,
-    ];
-    const s = JSON.stringify (a);
+    const a = [0, m.pubkey, m.created_at, m.kind, m.tags, m.content];
+    const s = JSON.stringify(a);
     const h = await this.sha256(s);
     return h;
   }
@@ -49,20 +42,20 @@ class NosrtEmbed extends Component {
   }
 
   async validateNostrEvent(event) {
-    if (event.id !== await this.getNostrEventID(event)) return false
-    if (typeof event.content !== 'string') return false
-    if (typeof event.created_at !== 'number') return false
+    if (event.id !== (await this.getNostrEventID(event))) return false;
+    if (typeof event.content !== 'string') return false;
+    if (typeof event.created_at !== 'number') return false;
 
-    if (!Array.isArray(event.tags)) return false
+    if (!Array.isArray(event.tags)) return false;
     for (let i = 0; i < event.tags.length; i++) {
-      let tag = event.tags[i]
-      if (!Array.isArray(tag)) return false
+      let tag = event.tags[i];
+      if (!Array.isArray(tag)) return false;
       for (let j = 0; j < tag.length; j++) {
-        if (typeof tag[j] === 'object') return false
+        if (typeof tag[j] === 'object') return false;
       }
     }
 
-    return true
+    return true;
   }
 
   componentDidMount() {
@@ -80,53 +73,52 @@ class NosrtEmbed extends Component {
     const subs = {};
     socket.onmessage = async (e) => {
       try {
-        const d = JSON.parse (e.data);
-        if (!d || !d.length) throw "Bad reply from relay"
+        const d = JSON.parse(e.data);
+        if (!d || !d.length) throw 'Bad reply from relay';
 
-        if (d[0] == "NOTICE" && d.length == 2) {
-          console.log("notice from", socket.url, d[1]);
-	  return;
-        }
-
-        if (d[0] == "EOSE" && d.length > 1) {
-          if (d[1] in subs)
-            subs[d[1]].done();
+        if (d[0] == 'NOTICE' && d.length == 2) {
+          console.log('notice from', socket.url, d[1]);
           return;
         }
 
-        if (d[0] != "EVENT" || d.length < 3) throw "Unknown reply from relay";
+        if (d[0] == 'EOSE' && d.length > 1) {
+          if (d[1] in subs) subs[d[1]].done();
+          return;
+        }
+
+        if (d[0] != 'EVENT' || d.length < 3) throw 'Unknown reply from relay';
 
         const ev = d[2];
-        if (!ev.id
-            || !ev.pubkey
-            || !ev.sig
-            || !await this.validateNostrEvent(ev)
-            || !this.verifyNostrSignature(ev)
-           ) {
-	  throw "Bad event from relay";
+        if (
+          !ev.id ||
+          !ev.pubkey ||
+          !ev.sig ||
+          !(await this.validateNostrEvent(ev)) ||
+          !this.verifyNostrSignature(ev)
+        ) {
+          throw 'Bad event from relay';
         }
 
         if (d[1] in subs) {
           const s = subs[d[1]];
           s.events.push(ev);
-          if (s.sub.limit && s.sub.limit == 1)
-            s.done();
+          if (s.sub.limit && s.sub.limit == 1) s.done();
         }
-      } catch(error) {
-        console.log("relay", socket.url, "bad message", e, "error", error);
+      } catch (error) {
+        console.log('relay', socket.url, 'bad message', e, 'error', error);
         err(error);
       }
     };
 
-    socket.listEvents = ( { sub, ok, err} ) => {
-      let id = "embed-" + Math.random();
-      const req = ["REQ", id, sub];
+    socket.listEvents = ({ sub, ok, err }) => {
+      let id = 'embed-' + Math.random();
+      const req = ['REQ', id, sub];
       socket.send(JSON.stringify(req));
 
       const close = () => {
         const sub_id = id;
-        id = null; 
-        socket.send(JSON.stringify(["CLOSE", sub_id]));
+        id = null;
+        socket.send(JSON.stringify(['CLOSE', sub_id]));
         delete subs[sub_id];
       };
 
@@ -138,17 +130,20 @@ class NosrtEmbed extends Component {
         ok(events);
       };
 
-      const to = setTimeout(function () {
-        // tell relay we're no longer interested
-        close();
+      const to = setTimeout(
+        function () {
+          // tell relay we're no longer interested
+          close();
 
-        // maybe relay w/o EOSE support?
-        if (events.length) {
-          done();
-        } else {
-          err("timeout on relay", socket.url);
-        }
-      }, (sub.limit && sub.limit == 1) ? 2000 : 4000);
+          // maybe relay w/o EOSE support?
+          if (events.length) {
+            done();
+          } else {
+            err('timeout on relay', socket.url);
+          }
+        },
+        sub.limit && sub.limit == 1 ? 2000 : 4000
+      );
 
       subs[id] = { ok, err, events, done, sub };
     };
@@ -157,9 +152,13 @@ class NosrtEmbed extends Component {
   getEvent({ socket, sub, ok, err }) {
     return new Promise((ok, err) => {
       sub.limit = 1;
-      socket.listEvents({ sub, ok: (events) => {
-        ok(events ? events[0] : null);
-      }, err });
+      socket.listEvents({
+        sub,
+        ok: (events) => {
+          ok(events ? events[0] : null);
+        },
+        err,
+      });
     });
   }
 
@@ -205,30 +204,29 @@ class NosrtEmbed extends Component {
 
   fetchMeta({ socket, noteId }) {
     const sub = { kinds: [1, 6, 7], '#e': [noteId] };
-    this.listEvents({ socket, sub })
-      .then((events) => {
-        for (let noteEvent of events) {
-          switch (noteEvent['kind']) {
-            case 6:
-              this.setState((state) => ({
-                repostsCount: state.repostsCount + 1,
-              }));
-              break;
-            case 7:
-              this.setState((state) => ({
-                likesCount: state.likesCount + 1,
-              }));
-              break;
-            case 1:
-              this.setState((state) => ({
-                repliesCount: state.repliesCount + 1,
-              }));
-              break;
-            default:
-              console.log('Unknown note kind');
-          }
+    this.listEvents({ socket, sub }).then((events) => {
+      for (let noteEvent of events) {
+        switch (noteEvent['kind']) {
+          case 6:
+            this.setState((state) => ({
+              repostsCount: state.repostsCount + 1,
+            }));
+            break;
+          case 7:
+            this.setState((state) => ({
+              likesCount: state.likesCount + 1,
+            }));
+            break;
+          case 1:
+            this.setState((state) => ({
+              repliesCount: state.repliesCount + 1,
+            }));
+            break;
+          default:
+            console.log('Unknown note kind');
         }
-      });
+      }
+    });
   }
 
   render() {

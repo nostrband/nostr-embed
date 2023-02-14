@@ -1,10 +1,10 @@
 import { bech32 } from 'bech32';
 
 function hexToBytes(hex) {
-    let bytes = [];
-    for (let c = 0; c < hex.length; c += 2)
-        bytes.push(parseInt(hex.substr(c, 2), 16));
-    return bytes;
+  let bytes = [];
+  for (let c = 0; c < hex.length; c += 2)
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+  return bytes;
 }
 
 export function getNoteId(hexId) {
