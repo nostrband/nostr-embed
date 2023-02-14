@@ -74,11 +74,11 @@ hr {
   @apply ne-text-gray-900 ne-block ne-w-5 ne-h-5;
 }
 
-.linkCopyBtn {
+.linkCopyBtn, .linkLink {
   @apply ne-text-gray-900 ne-no-underline ne-flex ne-flex-row ne-items-center ne-gap-2 ne-cursor-pointer ne-relative;
 }
 
-.linkCopyBtn:hover,
+.linkCopyBtn:hover, .linkLink:hover,
 .linkCopyBtn:hover .copyIcon {
   @apply ne-text-gray-600;
 }
