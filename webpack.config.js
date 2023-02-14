@@ -1,6 +1,7 @@
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
 
 // Uncomment to analyze bundle
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
@@ -24,6 +25,9 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [{ from: 'index.html', to: 'index.html' }],
+    }),
+    new CompressionPlugin({
+      test: /\.js(\?.*)?$/i,
     }),
     // new BundleAnalyzerPlugin(),
   ],

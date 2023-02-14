@@ -11,7 +11,9 @@
     "build": "NODE_ENV=production webpack --mode production",
     "dev": "webpack serve --mode development"
   },
-  "keywords": [],
+  "keywords": [
+    "nostr"
+  ],
   "author": "Jeff Gardner <erskingardner@gmail.com>",
   "contributors": [
     "Artur Brugeman <admin@realsearch.cc>"
@@ -28,6 +30,7 @@
     "@babel/preset-env": "^7.20.2",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^9.1.2",
+    "compression-webpack-plugin": "^10.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
     "cssnano": "^5.1.14",
