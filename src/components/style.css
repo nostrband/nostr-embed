@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .nostrEmbedCard {
-  @apply ne-px-4 ne-py-5 ne-pb-3 ne-bg-[#fcfcfc] ne-rounded-lg ne-max-w-full md:ne-max-w-[600px] ne-flex ne-flex-col ne-gap-8;
+  @apply ne-px-4 ne-py-5 ne-pb-3 ne-bg-[#fcfcfc] ne-rounded-lg md:ne-max-w-[600px] ne-flex ne-flex-col ne-gap-8;
   @apply ne-font-sans ne-text-left;
   border: 1px solid #ddd;
 }
@@ -32,30 +32,12 @@
   @apply ne-flex ne-flex-row ne-gap-2 ne-items-center;
 }
 
-.copyKeyBtn {
-  @apply ne-p-0 ne-border-0 ne-bg-transparent ne-cursor-pointer ne-relative ne-flex ne-flex-row ne-align-middle;
-}
-
-.copyKeyBtn,
-.linkCopyBtn {
-  border: none;
-  background-color: transparent;
-}
-
-.copyKeyBtn:hover .copyIcon {
-  @apply ne-text-gray-600;
-}
-
-.pkey {
-  @apply ne-overflow-hidden ne-text-ellipsis ne-whitespace-nowrap ne-max-w-[30%] md:ne-max-w-sm;
-}
-
 .cardMeta {
   @apply ne-flex ne-flex-col ne-gap-1 md:ne-gap-2;
 }
 
 hr {
-  @apply ne-w-full ne-opacity-30 ne-m-0;
+  @apply ne-w-full ne-opacity-30 ne-m-1;
 }
 
 .cardInteractions {
@@ -77,6 +59,8 @@ hr {
 .linkCopyBtn,
 .linkLink {
   @apply ne-text-gray-900 ne-no-underline ne-flex ne-flex-row ne-items-center ne-gap-2 ne-cursor-pointer ne-relative;
+  border: 0;
+  background-color: transparent;
 }
 
 .linkCopyBtn:hover,
@@ -85,13 +69,9 @@ hr {
   @apply ne-text-gray-600;
 }
 
-.tooltip,
-.linkCopyBtn:hover .tooltip {
-  @apply ne-text-gray-400 ne-text-sm;
-}
-
-.tooltip {
-  @apply ne-hidden md:ne-flex md:ne-visible;
+.linkCopyBtn.green,
+.linkCopyBtn.green .copyIcon {
+  @apply ne-text-green-600;
 }
 
 .displayText {

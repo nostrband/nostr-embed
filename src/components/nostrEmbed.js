@@ -2,7 +2,6 @@ import { Component } from 'preact';
 import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
-import style from './style.css';
 
 class NosrtEmbed extends Component {
   constructor(props) {
@@ -59,10 +58,13 @@ class NosrtEmbed extends Component {
   }
 
   async isValidEvent(ev) {
-    return ev.id && ev.pubkey && ev.sig
-      && (await this.validateNostrEvent(ev))
-      && this.verifyNostrSignature(ev)
-      ;
+    return (
+      ev.id &&
+      ev.pubkey &&
+      ev.sig &&
+      (await this.validateNostrEvent(ev)) &&
+      this.verifyNostrSignature(ev)
+    );
   }
 
   componentDidMount() {
@@ -96,7 +98,6 @@ class NosrtEmbed extends Component {
         if (d[0] != 'EVENT' || d.length < 3) throw 'Unknown reply from relay';
 
         if (d[1] in subs) subs[d[1]].on_event(d[2]);
-
       } catch (error) {
         console.log('relay', socket.url, 'bad message', e, 'error', error);
         err(error);
@@ -142,12 +143,11 @@ class NosrtEmbed extends Component {
 
       const on_event = async (e) => {
         queue.push(e);
-        if (queue.length > 1)
-          return;
+        if (queue.length > 1) return;
         while (queue.length) {
           e = queue[0];
           if (e && (await this.isValidEvent(e))) events.push(e);
-	  queue.shift(); // dequeue after we've awaited
+          queue.shift(); // dequeue after we've awaited
           if (!e || (sub.limit && sub.limit == events.length)) {
             queue.splice(0, queue.length);
             done();
