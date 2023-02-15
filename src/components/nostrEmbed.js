@@ -2,6 +2,7 @@ import { Component } from 'preact';
 import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
+import style from './style.css';
 
 class NosrtEmbed extends Component {
   constructor(props) {

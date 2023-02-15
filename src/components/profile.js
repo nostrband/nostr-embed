@@ -1,6 +1,7 @@
 import KeyIcon from './icons/keyIcon';
 import CopyText from './copyText';
 import { getNpub } from '../common';
+import style from './style.css';
 
 function Profile({ profilePkey, profile }) {
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;

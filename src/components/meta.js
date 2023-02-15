@@ -4,6 +4,7 @@ import RepostIcon from './icons/repostIcon';
 import LinkIcon from './icons/linkIcon';
 import CopyText from './copyText';
 import { getNoteId } from '../common';
+import style from './style.css';
 
 function Meta({ note, repliesCount, repostsCount, likesCount }) {
   let date, encodedNoteId, formattedDate;

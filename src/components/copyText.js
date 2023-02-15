@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import CopyIcon from './icons/copyIcon';
+import style from './style.css';
 
 function CopyText({ iconClasses, displayText, copyText }) {
   const [btnClasses, setBtnClasses] = useState('linkCopyBtn');
