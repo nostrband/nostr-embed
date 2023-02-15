@@ -1,12 +1,15 @@
 import KeyIcon from './icons/keyIcon';
-import style from './style.css';
 import CopyText from './copyText';
 import { getNpub } from '../common';
 
 function Profile({ profilePkey, profile }) {
-  let cachedProfilePicture, encodedProfilePkey;
+  let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
   if (profilePkey && profile) {
     encodedProfilePkey = getNpub(profilePkey);
+    truncatedProfilePkey = `${encodedProfilePkey.slice(
+      0,
+      10
+    )}...${encodedProfilePkey.slice(-10)}`;
     cachedProfilePicture = `https://media.nostr.band/thumbs/${profilePkey.slice(
       -4
     )}/${profilePkey}-picture-64`;
@@ -24,7 +27,7 @@ function Profile({ profilePkey, profile }) {
         <div class="profileName">{profile.display_name || 'Loading...'}</div>
         <div class="profilePkey">
           <KeyIcon additionalClasses="w-4 h-4" />
-          <span class="pkey">{encodedProfilePkey || 'npub...'}</span>
+          <span class="pkey">{truncatedProfilePkey || 'npub...'}</span>
           <CopyText iconClasses="w-4 h-4" copyText={encodedProfilePkey} />
         </div>
       </div>

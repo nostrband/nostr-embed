@@ -2,7 +2,6 @@ import HeartIcon from './icons/heartIcon';
 import ReplyIcon from './icons/replyIcon';
 import RepostIcon from './icons/repostIcon';
 import LinkIcon from './icons/linkIcon';
-import style from './style.css';
 import CopyText from './copyText';
 import { getNoteId } from '../common';
 
