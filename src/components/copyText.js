@@ -1,5 +1,7 @@
 import { useState } from 'preact/hooks';
 import CopyIcon from './icons/copyIcon';
+// eslint-disable-next-line no-unused-vars
+import style from './style.css';
 
 function CopyText({ iconClasses, displayText, copyText }) {
   const [btnClasses, setBtnClasses] = useState('linkCopyBtn');
@@ -12,7 +14,7 @@ function CopyText({ iconClasses, displayText, copyText }) {
         setBtnClasses(btnClasses.replace('green', '').trim());
       }, 500);
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      Error('Failed to copy: ', err);
     }
   }
 

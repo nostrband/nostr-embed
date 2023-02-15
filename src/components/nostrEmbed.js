@@ -1,7 +1,9 @@
 import { Component } from 'preact';
-import * as secp from '@noble/secp256k1';
+import { isValidEvent } from '../common';
 import Profile from './profile';
 import Meta from './meta';
+// eslint-disable-next-line no-unused-vars
+import style from './style.css';
 
 class NosrtEmbed extends Component {
   constructor(props) {
@@ -18,61 +20,11 @@ class NosrtEmbed extends Component {
     };
   }
 
-  sha256(string) {
-    const utf8 = new TextEncoder().encode(string);
-    return secp.utils.sha256(utf8).then((hashBuffer) => {
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray
-        .map((bytes) => bytes.toString(16).padStart(2, '0'))
-        .join('');
-      return hashHex;
-    });
-  }
-
-  async getNostrEventID(m) {
-    const a = [0, m.pubkey, m.created_at, m.kind, m.tags, m.content];
-    const s = JSON.stringify(a);
-    const h = await this.sha256(s);
-    return h;
-  }
-
-  verifyNostrSignature(event) {
-    return secp.schnorr.verify(event.sig, event.id, event.pubkey);
-  }
-
-  async validateNostrEvent(event) {
-    if (event.id !== (await this.getNostrEventID(event))) return false;
-    if (typeof event.content !== 'string') return false;
-    if (typeof event.created_at !== 'number') return false;
-
-    if (!Array.isArray(event.tags)) return false;
-    for (let i = 0; i < event.tags.length; i++) {
-      let tag = event.tags[i];
-      if (!Array.isArray(tag)) return false;
-      for (let j = 0; j < tag.length; j++) {
-        if (typeof tag[j] === 'object') return false;
-      }
-    }
-
-    return true;
-  }
-
-  async isValidEvent(ev) {
-    return (
-      ev.id &&
-      ev.pubkey &&
-      ev.sig &&
-      (await this.validateNostrEvent(ev)) &&
-      this.verifyNostrSignature(ev)
-    );
-  }
-
   componentDidMount() {
     const socket = new WebSocket(this.state.relay);
 
     socket.onopen = () => {
       this.fetchNote({ socket });
-      console.log(`Connected to Nostr relay: ${socket.url}`);
     };
 
     socket.onerror = () => {
@@ -83,37 +35,36 @@ class NosrtEmbed extends Component {
     socket.onmessage = (e) => {
       try {
         const d = JSON.parse(e.data);
-        if (!d || !d.length) throw 'Bad reply from relay';
+        if (!d || !d.length) throw Error('Bad reply from relay');
 
-        if (d[0] == 'NOTICE' && d.length == 2) {
-          console.log('notice from', socket.url, d[1]);
+        if (d[0] === 'NOTICE' && d.length === 2) {
           return;
         }
 
-        if (d[0] == 'EOSE' && d.length > 1) {
-          if (d[1] in subs) subs[d[1]].on_event(null);
+        if (d[0] === 'EOSE' && d.length > 1) {
+          if (d[1] in subs) subs[d[1]].onEvent(null);
           return;
         }
 
-        if (d[0] != 'EVENT' || d.length < 3) throw 'Unknown reply from relay';
+        if (d[0] !== 'EVENT' || d.length < 3)
+          throw Error('Unknown reply from relay');
 
-        if (d[1] in subs) subs[d[1]].on_event(d[2]);
+        if (d[1] in subs) subs[d[1]].onEvent(d[2]);
       } catch (error) {
-        console.log('relay', socket.url, 'bad message', e, 'error', error);
-        err(error);
+        console.log(error);
       }
     };
 
     socket.listEvents = ({ sub, ok, err }) => {
-      let id = 'embed-' + Math.random();
+      let id = `embed-${Math.random()}`;
       const req = ['REQ', id, sub];
       socket.send(JSON.stringify(req));
 
       const close = () => {
-        const sub_id = id;
+        const subId = id;
         id = null;
-        socket.send(JSON.stringify(['CLOSE', sub_id]));
-        delete subs[sub_id];
+        socket.send(JSON.stringify(['CLOSE', subId]));
+        delete subs[subId];
       };
 
       const events = [];
@@ -127,28 +78,30 @@ class NosrtEmbed extends Component {
       };
 
       const to = setTimeout(
-        function () {
+        () => {
           // tell relay we're no longer interested
           close();
 
           // maybe relay w/o EOSE support?
           if (events.length || queue.length) {
-            on_event(null);
+            onEvent(null);
           } else {
             err('timeout on relay', socket.url);
           }
         },
-        sub.limit && sub.limit == 1 ? 2000 : 4000
+        sub.limit && sub.limit === 1 ? 2000 : 4000
       );
 
-      const on_event = async (e) => {
+      const onEvent = async (e) => {
         queue.push(e);
         if (queue.length > 1) return;
         while (queue.length) {
+          // eslint-disable-next-line prefer-destructuring, no-param-reassign
           e = queue[0];
-          if (e && (await this.isValidEvent(e))) events.push(e);
+          // eslint-disable-next-line no-await-in-loop
+          if (e && (await isValidEvent(e))) events.push(e);
           queue.shift(); // dequeue after we've awaited
-          if (!e || (sub.limit && sub.limit == events.length)) {
+          if (!e || (sub.limit && sub.limit === events.length)) {
             queue.splice(0, queue.length);
             done();
             break;
@@ -156,11 +109,12 @@ class NosrtEmbed extends Component {
         }
       };
 
-      subs[id] = { ok, err, on_event };
+      subs[id] = { ok, err, onEvent };
     };
   }
 
-  getEvent({ socket, sub, ok, err }) {
+  // eslint-disable-next-line class-methods-use-this
+  getEvent({ socket, sub }) {
     return new Promise((ok, err) => {
       sub.limit = 1;
       socket.listEvents({
@@ -173,6 +127,7 @@ class NosrtEmbed extends Component {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   listEvents({ socket, sub }) {
     return new Promise((ok, err) => {
       socket.listEvents({ sub, ok, err });
@@ -191,7 +146,6 @@ class NosrtEmbed extends Component {
           this.fetchProfile({ socket, profilePkey: event.pubkey });
           this.fetchMeta({ socket, noteId: this.state.noteId });
         } else {
-          console.log("Error: We can't find that note on this relay");
           this.setState({
             note: {
               error: true,
@@ -201,8 +155,7 @@ class NosrtEmbed extends Component {
           });
         }
       })
-      .catch((error) => {
-        console.log(`Error fetching note: ${error}`);
+      .catch(() => {
         this.setState({
           note: {
             error: true,
@@ -218,39 +171,35 @@ class NosrtEmbed extends Component {
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
-          let parsedProfile = JSON.parse(event.content);
+          const parsedProfile = JSON.parse(event.content);
           this.setState({ profile: parsedProfile });
         }
       })
-      .catch((error) => {
-        console.log(`Error fetching profile: ${error}`);
+      .catch(() => {
+        this.setState({
+          note: {
+            error: true,
+            content:
+              "Sorry, there was an error fetching this user's profile from the specified relay.",
+          },
+        });
       });
   }
 
   fetchMeta({ socket, noteId }) {
     const sub = { kinds: [1, 6, 7], '#e': [noteId] };
     this.listEvents({ socket, sub }).then((events) => {
-      for (let noteEvent of events) {
-        switch (noteEvent['kind']) {
-          case 6:
-            this.setState((state) => ({
-              repostsCount: state.repostsCount + 1,
-            }));
-            break;
-          case 7:
-            this.setState((state) => ({
-              likesCount: state.likesCount + 1,
-            }));
-            break;
-          case 1:
-            this.setState((state) => ({
-              repliesCount: state.repliesCount + 1,
-            }));
-            break;
-          default:
-            console.log('Unknown note kind');
+      events.forEach((event) => {
+        if (event.kind === 1) {
+          this.setState((state) => ({ repliesCount: state.repliesCount + 1 }));
         }
-      }
+        if (event.kind === 6) {
+          this.setState((state) => ({ repostsCount: state.repostsCount + 1 }));
+        }
+        if (event.kind === 7) {
+          this.setState((state) => ({ likesCount: state.likesCount + 1 }));
+        }
+      });
     });
   }
 

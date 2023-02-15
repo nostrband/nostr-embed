@@ -4,9 +4,13 @@ import RepostIcon from './icons/repostIcon';
 import LinkIcon from './icons/linkIcon';
 import CopyText from './copyText';
 import { getNoteId } from '../common';
+// eslint-disable-next-line no-unused-vars
+import style from './style.css';
 
 function Meta({ note, repliesCount, repostsCount, likesCount }) {
-  let date, encodedNoteId, formattedDate;
+  let date;
+  let encodedNoteId;
+  let formattedDate;
 
   if (note.id && note.created_at) {
     date = new Date(note.created_at * 1000);
