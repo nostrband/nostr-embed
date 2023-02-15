@@ -1,9 +1,14 @@
 import KeyIcon from './icons/keyIcon';
 import CopyText from './copyText';
 import { getNpub } from '../common';
+// eslint-disable-next-line no-unused-vars
+import style from './style.css';
 
 function Profile({ profilePkey, profile }) {
-  let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
+  let cachedProfilePicture;
+  let encodedProfilePkey;
+  let truncatedProfilePkey;
+
   if (profilePkey && profile) {
     encodedProfilePkey = getNpub(profilePkey);
     truncatedProfilePkey = `${encodedProfilePkey.slice(
