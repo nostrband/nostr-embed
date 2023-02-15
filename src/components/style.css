@@ -9,7 +9,7 @@
 }
 
 .cardContent {
-  @apply ne-text-lg;
+  @apply ne-text-lg ne-break-words ne-whitespace-pre-line;
 }
 
 .cardProfile {
