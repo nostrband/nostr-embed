@@ -2,7 +2,6 @@
   "name": "nostr-embed",
   "version": "0.1.1",
   "description": "Embed a Nostr note anywhere on the web",
-  "private": true,
   "sideEffects": [
     "*.css"
   ],
