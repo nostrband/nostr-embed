@@ -69,11 +69,37 @@ class NosrtEmbed extends Component {
   }
 
   componentDidMount() {
-    const socket = new WebSocket(this.state.relay);
+
+    const start = (socket) => {
+      this.fetchNote({ socket });
+    };
+
+    if (!window.__nostrEmbed) window.__nostrEmbed = {sockets: {}};
+
+    let socket = null;
+    if (this.state.relay in window.__nostrEmbed.sockets)
+    {
+      socket = window.__nostrEmbed.sockets[this.state.relay];
+      if (socket.readyState == 1) // open
+	start(socket);
+      else if (socket.readyState == 0) // connecting
+	socket.starts.push(start);
+      else
+	socket = null;
+    }
+
+    if (socket) return;
+
+    socket = new WebSocket(this.state.relay);
+    window.__nostrEmbed.sockets[this.state.relay] = socket;
+
+    socket.starts = [start];
 
     socket.onopen = () => {
-      this.fetchNote({ socket });
       console.log(`Connected to Nostr relay: ${socket.url}`);
+      for (const s of socket.starts)
+	s(socket);
+      socket.starts = null;
     };
 
     socket.onerror = () => {
