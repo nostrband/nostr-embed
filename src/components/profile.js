@@ -9,8 +9,8 @@ function Profile({ profilePkey, profile }) {
     encodedProfilePkey = getNpub(profilePkey);
     truncatedProfilePkey = `${encodedProfilePkey.slice(
       0,
-      10
-    )}...${encodedProfilePkey.slice(-10)}`;
+      13
+    )}...${encodedProfilePkey.slice(-6)}`;
     cachedProfilePicture = `https://media.nostr.band/thumbs/${profilePkey.slice(
       -4
     )}/${profilePkey}-picture-64`;
