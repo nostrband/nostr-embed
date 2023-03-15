@@ -3,6 +3,7 @@ import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
 import style from './style.css';
+import { decode } from 'light-bolt11-decoder'
 
 class NosrtEmbed extends Component {
   constructor(props) {
@@ -16,6 +17,7 @@ class NosrtEmbed extends Component {
       likesCount: 0,
       repostsCount: 0,
       repliesCount: 0,
+      zapAmount: 0,
     };
   }
 
@@ -254,8 +256,26 @@ class NosrtEmbed extends Component {
       });
   }
 
+  getZapAmount(e) {
+    try {
+      for (const t of e.tags) {
+	if (t.length >= 2 && t[0] == "bolt11") {
+	  const b = decode(t[1]);
+	  for (const s of b.sections) {
+	    if (s.name == "amount")
+	      return parseInt(s.value);
+	  }
+	  break;
+	}
+      }
+    } catch (er) {
+      console.log("Error bad zap", er, e);
+    }
+    return 0;
+  }
+  
   fetchMeta({ socket, noteId }) {
-    const sub = { kinds: [1, 6, 7], '#e': [noteId] };
+    const sub = { kinds: [1, 6, 7, 9735], '#e': [noteId] };
     this.listEvents({ socket, sub }).then((events) => {
       for (let noteEvent of events) {
         switch (noteEvent['kind']) {
@@ -272,6 +292,11 @@ class NosrtEmbed extends Component {
           case 1:
             this.setState((state) => ({
               repliesCount: state.repliesCount + 1,
+            }));
+            break;
+          case 9735:
+            this.setState((state) => ({
+              zapAmount: state.zapAmount + this.getZapAmount(noteEvent),
             }));
             break;
           default:
@@ -302,6 +327,7 @@ class NosrtEmbed extends Component {
           likesCount={this.state.likesCount}
           repliesCount={this.state.repliesCount}
           repostsCount={this.state.repostsCount}
+          zapAmount={this.state.zapAmount}
         />
       </div>
     );

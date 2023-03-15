@@ -41,7 +41,7 @@ hr {
 }
 
 .cardInteractions {
-  @apply ne-flex ne-flex-row ne-justify-between md:ne-justify-start md:ne-gap-12;
+  @apply ne-flex ne-flex-row ne-justify-between md:ne-justify-start md:ne-gap-10;
 }
 
 .interactionContainer {
