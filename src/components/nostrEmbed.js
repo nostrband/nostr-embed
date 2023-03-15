@@ -4,6 +4,7 @@ import Profile from './profile';
 import Meta from './meta';
 import style from './style.css';
 import { decode } from 'light-bolt11-decoder'
+import { getNpub, getNoteId, formatNpub, formatNoteId } from '../common';
 
 class NosrtEmbed extends Component {
   constructor(props) {
@@ -13,6 +14,7 @@ class NosrtEmbed extends Component {
       relay: props.relay || 'wss://relay.nostr.band/all',
       note: {},
       profile: {},
+      taggedProfiles: {},
       profilePkey: '',
       likesCount: 0,
       repostsCount: 0,
@@ -219,6 +221,7 @@ class NosrtEmbed extends Component {
           });
           this.fetchProfile({ socket, profilePkey: event.pubkey });
           this.fetchMeta({ socket, noteId: this.state.noteId });
+          this.fetchTags({ socket, tags: event.tags });
         } else {
           console.log("Error: We can't find that note on this relay");
           this.setState({
@@ -247,12 +250,44 @@ class NosrtEmbed extends Component {
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
-          let parsedProfile = JSON.parse(event.content);
-          this.setState({ profile: parsedProfile });
+	  try {
+            let parsedProfile = JSON.parse(event.content);
+            this.setState({ profile: parsedProfile });
+	  } catch (e) {
+	    console.log("Error bad event content", e, event.content);
+	  }
         }
       })
       .catch((error) => {
         console.log(`Error fetching profile: ${error}`);
+      });
+  }
+
+  fetchTags({ socket, tags }) {
+    const sub = { kinds: [0], authors: [] };
+    for (const t of tags) {
+      if (t.length >= 2 && t[0] == "p") {
+	sub.authors.push(t[1]);
+      }
+    }
+    if (!sub.authors.length)
+      return;
+
+    this.listEvents({ socket, sub })
+      .then((events) => {
+	const taggedProfiles = {};
+	for (const event of events) {
+	  try {
+            let p = JSON.parse(event.content);
+	    taggedProfiles[event.pubkey] = p;
+	  } catch (e) {
+	    console.log("Error bad event content", e, event.content);
+	  }
+	}
+        this.setState({ taggedProfiles });
+      })
+      .catch((error) => {
+        console.log(`Error fetching tagged profiles: ${error}`);
       });
   }
 
@@ -306,6 +341,63 @@ class NosrtEmbed extends Component {
     });
   }
 
+  formatContent() {
+    if (!this.state.note.content) return "";
+
+    const MentionRegex = /(#\[\d+\])/gi;
+
+    const note = this.state.note;
+    const fragments = note.content.split(MentionRegex).map(match => {
+      const matchTag = match.match(/#\[(\d+)\]/);
+      if (matchTag && matchTag.length === 2) {
+        const idx = parseInt(matchTag[1]);
+	if (idx < note.tags.length && note.tags[idx].length >= 2) {
+          const ref = note.tags[idx];
+          switch (ref[0]) {
+          case "p": {
+	    const npub = getNpub(ref[1]);
+	    let label = formatNpub(npub);
+	    if (ref[1] in this.state.taggedProfiles) {
+	      const tp = this.state.taggedProfiles[ref[1]];
+	      label = tp?.name || tp?.display_name || label;
+	    }
+            return (
+		<a target='_blank' href={`https://nostr.band/${npub}`}>@{label}</a>
+	    )
+          }
+          case "e": {
+	    const noteId = getNoteId(ref[1]);
+	    const label = formatNoteId(noteId);
+            return (
+		<a target='_blank' href={`https://nostr.band/${noteId}`}>{label}</a>
+	    )
+          }
+          case "t": {
+            return (
+		<a target='_blank' href={`https://nostr.band/?q=%23${ref[1]}`}>#{ref[1]}</a>
+	    )
+          }
+	  }
+	}
+      } else {
+	const urlRegex =
+	      /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
+
+	return match.split(urlRegex).map(a => {
+          if (a.match(/^https?:\/\//)) {
+	    return (
+		<a target='_blank' href={a}>{a}</a>
+	    )
+	  }
+	  return a;
+	});
+      }
+      return match;
+    });
+
+    return fragments;
+  }
+
   render() {
     return (
       <div class="nostrEmbedCard">
@@ -320,7 +412,7 @@ class NosrtEmbed extends Component {
               : 'cardContent'
           }
         >
-          {this.state.note.content}
+          {this.formatContent()}
         </div>
         <Meta
           note={this.state.note}

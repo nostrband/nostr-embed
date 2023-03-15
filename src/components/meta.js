@@ -2,6 +2,7 @@ import HeartIcon from './icons/heartIcon';
 import ReplyIcon from './icons/replyIcon';
 import RepostIcon from './icons/repostIcon';
 import LinkIcon from './icons/linkIcon';
+import BoltIcon from './icons/boltIcon';
 import CopyText from './copyText';
 import { getNoteId } from '../common';
 import style from './style.css';
@@ -36,7 +37,7 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
       <hr />
       <div class="cardInteractions">
         <div class="interactionContainer" title="Amount of Zaps">
-          <ReplyIcon additionalClasses="w-5 h-5" />
+          <BoltIcon additionalClasses="w-5 h-5" />
           <span class="zapAmount">{formattedZapAmount}</span>
         </div>
         <div class="interactionContainer" title="Number of replies">

@@ -1,16 +1,13 @@
 import KeyIcon from './icons/keyIcon';
 import CopyText from './copyText';
-import { getNpub } from '../common';
+import { getNpub, formatNpub } from '../common';
 import style from './style.css';
 
 function Profile({ profilePkey, profile }) {
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
   if (profilePkey && profile) {
     encodedProfilePkey = getNpub(profilePkey);
-    truncatedProfilePkey = `${encodedProfilePkey.slice(
-      0,
-      13
-    )}...${encodedProfilePkey.slice(-6)}`;
+    truncatedProfilePkey = `${formatNpub(encodedProfilePkey)}`;
     cachedProfilePicture = `https://media.nostr.band/thumbs/${profilePkey.slice(
       -4
     )}/${profilePkey}-picture-64`;

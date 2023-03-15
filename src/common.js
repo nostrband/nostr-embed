@@ -18,3 +18,17 @@ export function getNpub(hexPubkey) {
   const words = bech32.toWords(bb);
   return bech32.encode('npub', words, 120);
 }
+
+export function formatNpub(npub) {
+  return `${npub.slice(
+    0,
+    13
+  )}...${npub.slice(-6)}`;
+}
+
+export function formatNoteId(noteId) {
+  return `${noteId.slice(
+    0,
+    10,
+  )}...${noteId.slice(-6)}`;
+}
