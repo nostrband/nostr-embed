@@ -53,7 +53,8 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
           <span class="likesCount">{likesCount}</span>
         </div>
         <div class="interactionContainer">
-          <a href={`https://nostr.band/${encodedNoteId}`} class="linkLink">
+          <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedNoteId}`}
+              class="linkLink">
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
             <span class="displayText">Open</span>
           </a>

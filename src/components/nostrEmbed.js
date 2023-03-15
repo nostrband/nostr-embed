@@ -362,19 +362,22 @@ class NosrtEmbed extends Component {
 	      label = tp?.name || tp?.display_name || label;
 	    }
             return (
-		<a target='_blank' href={`https://nostr.band/${npub}`}>@{label}</a>
+		<a target="_blank" rel="noopener noreferrer nofollow"
+	          href={`https://nostr.band/${npub}`}>@{label}</a>
 	    )
           }
           case "e": {
 	    const noteId = getNoteId(ref[1]);
 	    const label = formatNoteId(noteId);
             return (
-		<a target='_blank' href={`https://nostr.band/${noteId}`}>{label}</a>
+		<a target="_blank" rel="noopener noreferrer nofollow"
+	          href={`https://nostr.band/${noteId}`}>{label}</a>
 	    )
           }
           case "t": {
             return (
-		<a target='_blank' href={`https://nostr.band/?q=%23${ref[1]}`}>#{ref[1]}</a>
+		<a target="_blank" rel="noopener noreferrer nofollow"
+	          href={`https://nostr.band/?q=%23${ref[1]}`}>#{ref[1]}</a>
 	    )
           }
 	  }
@@ -386,7 +389,7 @@ class NosrtEmbed extends Component {
 	return match.split(urlRegex).map(a => {
           if (a.match(/^https?:\/\//)) {
 	    return (
-		<a target='_blank' href={a}>{a}</a>
+		<a target="_blank" rel="noopener noreferrer nofollow" href={a}>{a}</a>
 	    )
 	  }
 	  return a;

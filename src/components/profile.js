@@ -22,7 +22,11 @@ function Profile({ profilePkey, profile }) {
         }
       />
       <div class="profileDetails">
-        <div class="profileName">{profile.display_name || 'Loading...'}</div>
+        <div class="profileName">
+          <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedProfilePkey}`}>
+            {profile.display_name || 'Loading...'}
+          </a>
+        </div>
         <div class="profilePkey">
           <KeyIcon additionalClasses="w-4 h-4" />
           <span class="pkey">{truncatedProfilePkey || 'npub...'}</span>
