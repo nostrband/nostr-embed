@@ -28,6 +28,13 @@
   @apply ne-text-lg ne-font-bold;
 }
 
+.profileName a {
+  @apply ne-no-underline ne-text-gray-900;
+}
+.profileName a:hover {
+  @apply ne-text-gray-600;
+}
+
 .profilePkey {
   @apply ne-flex ne-flex-row ne-gap-2 ne-items-center;
 }
@@ -41,7 +48,7 @@ hr {
 }
 
 .cardInteractions {
-  @apply ne-flex ne-flex-row ne-justify-between md:ne-justify-start md:ne-gap-12;
+  @apply ne-flex ne-flex-row ne-justify-between md:ne-justify-start md:ne-gap-10;
 }
 
 .interactionContainer {
