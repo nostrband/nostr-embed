@@ -36,7 +36,7 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
       <div class="cardDate">{formattedDate}</div>
       <hr />
       <div class="cardInteractions">
-        <div class="interactionContainer" title="Amount of Zaps">
+        <div class="interactionContainer" title="Total sats zapped">
           <BoltIcon additionalClasses="w-5 h-5" />
           <span class="zapAmount">{formattedZapAmount}</span>
         </div>
