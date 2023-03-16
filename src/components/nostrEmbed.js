@@ -11,7 +11,7 @@ class NosrtEmbed extends Component {
     super(props);
     this.state = {
       noteId: props.noteId,
-      relay: props.relay || 'wss://relay.nostr.band/all',
+      relay: props.relay,
       note: {},
       profile: {},
       taggedProfiles: {},
