@@ -2,9 +2,12 @@ import { Component } from 'preact';
 import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
-import style from './style.css';
 import { decode } from 'light-bolt11-decoder'
 import { getNpub, getNoteId, formatNpub, formatNoteId } from '../common';
+
+const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
+const YOUTUBE_KEY_WORDS = ['youtube'];
 
 class NosrtEmbed extends Component {
   constructor(props) {
@@ -373,19 +376,28 @@ class NosrtEmbed extends Component {
     return a.toLowerCase()
   }
 
+  isAnyEndWith(link, extensions) {
+    return extensions.some(function (extension) {
+      return link.endsWith(extension);
+    });
+  }
+
+  isAnyContains(link, keyWords) {
+    return keyWords.some(function (keyWord) {
+      return link.includes(keyWord);
+    });
+  }
+
   isImage(a) {
-    const link = this.changeLinkRegister(a)
-    return link.toLowerCase().endsWith('.jpg') || link.endsWith('.jpeg') || link.endsWith('.png') ||  link.endsWith('.webp') || link.endsWith('.gif') ;
+    return this.isAnyEndWith(this.changeLinkRegister(a), IMAGE_FILE_EXTENSIONS)
   }
 
   isVideo(a) {
-    const link = this.changeLinkRegister(a)
-    return link.endsWith('.mov') || link.endsWith('.mp4');
+    return this.isAnyEndWith(this.changeLinkRegister(a), VIDEO_FILE_EXTENSIONS)
   }
 
   isYoutube(a) {
-    const link = this.changeLinkRegister(a)
-    return link.includes('youtube')
+    return this.isAnyContains(this.changeLinkRegister(a), YOUTUBE_KEY_WORDS)
   }
 
   formatContent() {
