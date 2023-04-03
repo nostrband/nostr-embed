@@ -342,17 +342,17 @@ class NosrtEmbed extends Component {
   }
 
   formatLink(a) {
-    if (a.endsWith('.mov')) {
+    if (this.isVideo(a)) {
       return (
           <div class='cardContentMedia'>
             <video src={a} controls></video>
           </div>
       )
-    } else if (a.endsWith('jpg')) {
+    } else if (this.isImage(a)) {
       return (<div className='cardContentMedia'>
         <image src={a}></image>
       </div>)
-    } else if (a.includes('youtube')) {
+    } else if (this.isYoutube(a)) {
       if (a.includes('/watch')) {
         a = a.replace('/watch', '/embed')
         a = a.replace('?v=', '/')
@@ -366,6 +366,18 @@ class NosrtEmbed extends Component {
           <a target="_blank" rel="noopener noreferrer nofollow" href={a}>{a}</a>
       )
     }
+  }
+
+  isImage(a) {
+    return a.endsWith('jpg') || a.endsWith('jpeg') || a.endsWith('png');
+  }
+
+  isVideo(a) {
+    return a.endsWith('mov');
+  }
+
+  isYoutube(a) {
+    return a.includes('youtube')
   }
 
   formatContent() {
