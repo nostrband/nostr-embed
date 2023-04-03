@@ -369,16 +369,23 @@ class NosrtEmbed extends Component {
     }
   }
 
+  changeLinkRegister(a) {
+    return a.toLowerCase()
+  }
+
   isImage(a) {
-    return a.endsWith('jpg') || a.endsWith('jpeg') || a.endsWith('png') ||  a.endsWith('webp') || a.endsWith('gif') ;
+    const link = this.changeLinkRegister(a)
+    return link.toLowerCase().endsWith('.jpg') || link.endsWith('.jpeg') || link.endsWith('.png') ||  link.endsWith('.webp') || link.endsWith('.gif') ;
   }
 
   isVideo(a) {
-    return a.endsWith('mov');
+    const link = this.changeLinkRegister(a)
+    return link.endsWith('.mov') || link.endsWith('.mp4');
   }
 
   isYoutube(a) {
-    return a.includes('youtube')
+    const link = this.changeLinkRegister(a)
+    return link.includes('youtube')
   }
 
   formatContent() {
