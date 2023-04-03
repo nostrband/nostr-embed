@@ -349,9 +349,10 @@ class NosrtEmbed extends Component {
           </div>
       )
     } else if (this.isImage(a)) {
-      return (<div className='cardContentMedia'>
-        <image src={a}></image>
-      </div>)
+      return (
+        <div className="cardContentMedia">
+          <img className="cardContentImage" src={a} alt=""></img>
+        </div>)
     } else if (this.isYoutube(a)) {
       if (a.includes('/watch')) {
         a = a.replace('/watch', '/embed')
@@ -369,7 +370,7 @@ class NosrtEmbed extends Component {
   }
 
   isImage(a) {
-    return a.endsWith('jpg') || a.endsWith('jpeg') || a.endsWith('png');
+    return a.endsWith('jpg') || a.endsWith('jpeg') || a.endsWith('png') ||  a.endsWith('webp') || a.endsWith('gif') ;
   }
 
   isVideo(a) {
