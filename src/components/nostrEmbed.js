@@ -341,6 +341,33 @@ class NosrtEmbed extends Component {
     });
   }
 
+  formatLink(a) {
+    if (a.endsWith('.mov')) {
+      return (
+          <div class='cardContentMedia'>
+            <video src={a} controls></video>
+          </div>
+      )
+    } else if (a.endsWith('jpg')) {
+      return (<div className='cardContentMedia'>
+        <image src={a}></image>
+      </div>)
+    } else if (a.includes('youtube')) {
+      if (a.includes('/watch')) {
+        a = a.replace('/watch', '/embed')
+        a = a.replace('?v=', '/')
+      }
+      return (
+          <div className='cardContentMedia'>
+            <iframe src={a}></iframe>
+          </div>)
+    } else {
+      return (
+          <a target="_blank" rel="noopener noreferrer nofollow" href={a}>{a}</a>
+      )
+    }
+  }
+
   formatContent() {
     if (!this.state.note.content) return "";
 
@@ -388,11 +415,9 @@ class NosrtEmbed extends Component {
 
 	return match.split(urlRegex).map(a => {
           if (a.match(/^https?:\/\//)) {
-	    return (
-		<a target="_blank" rel="noopener noreferrer nofollow" href={a}>{a}</a>
-	    )
-	  }
-	  return a;
+            return this.formatLink(a)
+          }
+          return a;
 	});
       }
       return match;
