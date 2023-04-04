@@ -397,12 +397,12 @@ class NosrtEmbed extends Component {
   }
 
   isImage(a) {
-    const link = this.splitLink(this.changeLinkRegister(a), 1);
+    const link = this.splitLink(this.changeLinkRegister(a), 0);
     return this.isAnyEndWith(link, IMAGE_FILE_EXTENSIONS)
   }
 
   isVideo(a) {
-    const link = this.splitLink(this.changeLinkRegister(a), 1);
+    const link = this.splitLink(this.changeLinkRegister(a), 0);
     return this.isAnyEndWith(link, VIDEO_FILE_EXTENSIONS)
   }
 
