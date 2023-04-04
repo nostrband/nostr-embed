@@ -18,9 +18,6 @@
 
 .cardContentMedia > video, img, iframe {
   border-radius: 15px;
-}
-
-.cardContentImage {
   width: 50%;
 }
 
