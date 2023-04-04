@@ -376,6 +376,14 @@ class NosrtEmbed extends Component {
     return a.toLowerCase()
   }
 
+  splitLink(link, elementNumber) {
+    const linkArray = link.split('?');
+    if (linkArray.length > elementNumber) {
+      return linkArray[elementNumber];
+    }
+    return link;
+  }
+
   isAnyEndWith(link, extensions) {
     return extensions.some(function (extension) {
       return link.endsWith(extension);
@@ -389,15 +397,18 @@ class NosrtEmbed extends Component {
   }
 
   isImage(a) {
-    return this.isAnyEndWith(this.changeLinkRegister(a), IMAGE_FILE_EXTENSIONS)
+    const link = this.splitLink(this.changeLinkRegister(a), 1);
+    return this.isAnyEndWith(link, IMAGE_FILE_EXTENSIONS)
   }
 
   isVideo(a) {
-    return this.isAnyEndWith(this.changeLinkRegister(a), VIDEO_FILE_EXTENSIONS)
+    const link = this.splitLink(this.changeLinkRegister(a), 1);
+    return this.isAnyEndWith(link, VIDEO_FILE_EXTENSIONS)
   }
 
   isYoutube(a) {
-    return this.isAnyContains(this.changeLinkRegister(a), YOUTUBE_KEY_WORDS)
+    const link = this.splitLink(this.changeLinkRegister(a), 0);
+    return this.isAnyContains(link, YOUTUBE_KEY_WORDS)
   }
 
   formatContent() {
