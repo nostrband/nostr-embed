@@ -11,8 +11,8 @@
   <body>
     <h1>Testing the Nostr Embed</h1>
 
-    <div class="nostr-embed" data-nostr='10c9fb11f742e6dc05d8bbcb4af790a4453f1bc046e40ca1b5385996c63d93ba'></div>
-    <div class="nostr-embed" data-nostr='1837119ecbcd8be8c6825540722f4cef2eb04383550d6127addf3ed643229e4c'></div>
+    <div id="nostr-embed-1"></div>
+    <div id="nostr-embed-2"></div>
 
     <script>
       !(function () {
@@ -21,10 +21,11 @@
         n.async = !0;
         n.src = 'nostr-embed.js';
         n.onload = function () {
-          nostrEmbed.init({
-            noteId: '10c9fb11f742e6dc05d8bbcb4af790a4453f1bc046e40ca1b5385996c63d93ba',
-            relay: 'wss://relay.damus.io',
-          });
+          nostrEmbed.init(
+            '755816a0ef90df5fe29fa6c4256d7fedefb22fcd213b60369b6e93f977796614',
+            '#nostr-embed-1',
+            'wss://relay.damus.io',
+          );
         };
         const a = document.getElementsByTagName('script')[0];
         a.parentNode.insertBefore(n, a);
@@ -38,10 +39,11 @@
         n.async = !0;
         n.src = 'nostr-embed.js';
         n.onload = function () {
-          nostrEmbed.init({
-            noteId: '1837119ecbcd8be8c6825540722f4cef2eb04383550d6127addf3ed643229e4c',
-            relay: 'wss://relay.damus.io',
-          });
+          nostrEmbed.init(
+            '1837119ecbcd8be8c6825540722f4cef2eb04383550d6127addf3ed643229e4c',
+            '#nostr-embed-2',
+            'wss://relay.damus.io',
+          );
         };
         const a = document.getElementsByTagName('script')[0];
         a.parentNode.insertBefore(n, a);
