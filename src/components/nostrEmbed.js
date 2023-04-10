@@ -2,16 +2,19 @@ import { Component } from 'preact';
 import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
-import style from './style.css';
 import { decode } from 'light-bolt11-decoder'
 import { getNpub, getNoteId, formatNpub, formatNoteId } from '../common';
+
+const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
+const YOUTUBE_KEY_WORDS = ['youtube'];
 
 class NosrtEmbed extends Component {
   constructor(props) {
     super(props);
     this.state = {
       noteId: props.noteId,
-      relay: props.relay || 'wss://relay.nostr.band/all',
+      relay: props.relay,
       note: {},
       profile: {},
       taggedProfiles: {},
@@ -341,6 +344,73 @@ class NosrtEmbed extends Component {
     });
   }
 
+  formatLink(a) {
+    if (this.isVideo(a)) {
+      return (
+          <div class='cardContentMedia'>
+            <video src={a} controls></video>
+          </div>
+      )
+    } else if (this.isImage(a)) {
+      return (
+        <div className="cardContentMedia">
+          <img className="cardContentImage" src={a} alt=""></img>
+        </div>)
+    } else if (this.isYoutube(a)) {
+      if (a.includes('/watch')) {
+        a = a.replace('/watch', '/embed')
+        a = a.replace('?v=', '/')
+      }
+      return (
+          <div className='cardContentMedia'>
+            <iframe src={a}></iframe>
+          </div>)
+    } else {
+      return (
+          <a target="_blank" rel="noopener noreferrer nofollow" href={a}>{a}</a>
+      )
+    }
+  }
+
+  changeLinkRegister(a) {
+    return a.toLowerCase()
+  }
+
+  splitLink(link, elementNumber) {
+    const linkArray = link.split('?');
+    if (linkArray.length > elementNumber) {
+      return linkArray[elementNumber];
+    }
+    return link;
+  }
+
+  isAnyEndWith(link, extensions) {
+    return extensions.some(function (extension) {
+      return link.endsWith(extension);
+    });
+  }
+
+  isAnyContains(link, keyWords) {
+    return keyWords.some(function (keyWord) {
+      return link.includes(keyWord);
+    });
+  }
+
+  isImage(a) {
+    const link = this.splitLink(this.changeLinkRegister(a), 0);
+    return this.isAnyEndWith(link, IMAGE_FILE_EXTENSIONS)
+  }
+
+  isVideo(a) {
+    const link = this.splitLink(this.changeLinkRegister(a), 0);
+    return this.isAnyEndWith(link, VIDEO_FILE_EXTENSIONS)
+  }
+
+  isYoutube(a) {
+    const link = this.splitLink(this.changeLinkRegister(a), 0);
+    return this.isAnyContains(link, YOUTUBE_KEY_WORDS)
+  }
+
   formatContent() {
     if (!this.state.note.content) return "";
 
@@ -388,11 +458,9 @@ class NosrtEmbed extends Component {
 
 	return match.split(urlRegex).map(a => {
           if (a.match(/^https?:\/\//)) {
-	    return (
-		<a target="_blank" rel="noopener noreferrer nofollow" href={a}>{a}</a>
-	    )
-	  }
-	  return a;
+            return this.formatLink(a)
+          }
+          return a;
 	});
       }
       return match;

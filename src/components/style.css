@@ -12,6 +12,15 @@
   @apply ne-text-lg ne-break-words ne-whitespace-pre-line;
 }
 
+.cardContentMedia {
+  text-align: center;
+}
+
+.cardContentMedia > video, img, iframe {
+  border-radius: 15px;
+  width: 50%;
+}
+
 .cardProfile {
   @apply ne-flex ne-flex-row ne-gap-4 ne-items-center;
 }
