@@ -16,7 +16,7 @@
   text-align: center;
 }
 
-.cardContentMedia > video, img, iframe {
+.cardContentMedia > video, .cardContentMedia > img, .cardContentMedia > iframe {
   border-radius: 15px;
   width: 50%;
 }
