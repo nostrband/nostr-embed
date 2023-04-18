@@ -7,7 +7,7 @@ A quick and easy way to embed a Nostr note anywhere on the web.
 Just add the following snippet to your site and change the parameters passed to the `nostrEmbed.init` function.
 
 ```html
-<div id="nostr-embed"></div>
+<div id="some-container-id"></div>
 
 <script>
   !(function () {
@@ -15,7 +15,7 @@ Just add the following snippet to your site and change the parameters passed to 
     n.onload=function () {
       nostrEmbed.init(
         '10c9fb11f742e6dc05d8bbcb4af790a4453f1bc046e40ca1b5385996c63d93ba',
-        '#nostr-embed',
+        '#some-container-id',
         'wss://relay.nostr.band'
       );
     };const a=document.getElementsByTagName('script')[0];a.parentNode.insertBefore(n, a);
@@ -40,5 +40,4 @@ You can also [generate an embed code on this page](https://embed.nostr.band).
 
 * We have zero tests so far.
 * We need to implement pooling of relays so that we can check several instead of just one.
-* We need to render embedded images, youtube links, etc.
 * We need to render replied to, and root events, if embedded event is a reply.

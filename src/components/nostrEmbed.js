@@ -3,7 +3,7 @@ import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
 import { decode } from 'light-bolt11-decoder'
-import { getNpub, getNoteId, formatNpub, formatNoteId } from '../common';
+import { getNpub, getNoteId, formatNpub, formatNoteId, parseNoteId } from '../common';
 
 const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
@@ -414,9 +414,29 @@ class NosrtEmbed extends Component {
   formatContent() {
     if (!this.state.note.content) return "";
 
-    const MentionRegex = /(#\[\d+\])/gi;
+    const formatEventLink = (noteId) => {
+      const label = formatNoteId(noteId);
+      return (
+	  <a target="_blank" rel="noopener noreferrer nofollow"
+	href={`https://nostr.band/${noteId}`}>{label}</a>
+      )
+    }
+
+    const formatProfileLink = (npub, pubkey) => {
+      let label = formatNpub(npub);
+      if (pubkey in this.state.taggedProfiles) {
+	const tp = this.state.taggedProfiles[pubkey];
+	label = tp?.name || tp?.display_name || label;
+      }
+      return (
+	  <a target="_blank" rel="noopener noreferrer nofollow"
+	href={`https://nostr.band/${npub}`}>@{label}</a>
+      )
+    }
 
     const note = this.state.note;
+
+    const MentionRegex = /(#\[\d+\])/gi;
     const fragments = note.content.split(MentionRegex).map(match => {
       const matchTag = match.match(/#\[(\d+)\]/);
       if (matchTag && matchTag.length === 2) {
@@ -425,24 +445,10 @@ class NosrtEmbed extends Component {
           const ref = note.tags[idx];
           switch (ref[0]) {
           case "p": {
-	    const npub = getNpub(ref[1]);
-	    let label = formatNpub(npub);
-	    if (ref[1] in this.state.taggedProfiles) {
-	      const tp = this.state.taggedProfiles[ref[1]];
-	      label = tp?.name || tp?.display_name || label;
-	    }
-            return (
-		<a target="_blank" rel="noopener noreferrer nofollow"
-	          href={`https://nostr.band/${npub}`}>@{label}</a>
-	    )
+	    return formatProfileLink(getNpub(ref[1]), ref[1]);
           }
           case "e": {
-	    const noteId = getNoteId(ref[1]);
-	    const label = formatNoteId(noteId);
-            return (
-		<a target="_blank" rel="noopener noreferrer nofollow"
-	          href={`https://nostr.band/${noteId}`}>{label}</a>
-	    )
+	    return formatEventLink(getNoteId(ref[1]));
           }
           case "t": {
             return (
@@ -453,6 +459,18 @@ class NosrtEmbed extends Component {
 	  }
 	}
       } else {
+
+	const matchNostr = match.match(/nostr:([a-z0-9]+)/);
+	if (matchNostr && matchNostr.length === 2)
+	{
+	  if (matchNostr[1].startsWith("note1") || matchNostr[1].startsWith("nevent1")) {
+	    return formatEventLink(matchNostr[1]);
+	  } else if (matchNostr.startsWith("npub1")) {
+	    // FIXME add nprofile too!
+	    return formatProfileLink(matchNostr[1], parseNpub(matchNostr[1]));
+	  }
+	}
+
 	const urlRegex =
 	      /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
 

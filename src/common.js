@@ -19,6 +19,24 @@ export function getNpub(hexPubkey) {
   return bech32.encode('npub', words, 120);
 }
 
+function fromWords(words) {
+  return bech32.fromWords(words)
+    .map((bytes) => bytes.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export function parseNoteId(noteId) {
+  const r = bech32.decode(noteId, 120);
+  if (r.prefix != "note") return "";
+  return fromWords(r.words);
+}
+
+export function parseNpub(npub) {
+  const r = bech32.decode(npub, 120);
+  if (r.prefix != "npub") return "";
+  return fromWords(r.words);
+}
+
 export function formatNpub(npub) {
   return `${npub.slice(
     0,
