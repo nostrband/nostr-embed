@@ -3,7 +3,7 @@ import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
 import { decode } from 'light-bolt11-decoder'
-import { getNpub, getNoteId, formatNpub, formatNoteId } from '../common';
+import { getNpub, getNoteId, formatNpub, formatNoteId, parseNoteId } from '../common';
 
 const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
@@ -129,6 +129,11 @@ class NosrtEmbed extends Component {
           return;
         }
 
+        if (d[0] == 'COUNT' && d.length == 3) {
+          if (d[1] in subs) subs[d[1]].on_count(d[2]);
+          return;
+        }
+
         if (d[0] != 'EVENT' || d.length < 3) throw 'Unknown reply from relay';
 
         if (d[1] in subs) subs[d[1]].on_event(d[2]);
@@ -138,9 +143,9 @@ class NosrtEmbed extends Component {
       }
     };
 
-    socket.listEvents = ({ sub, ok, err }) => {
+    socket.subscribe = ({ type, sub, ok, err }) => {
       let id = 'embed-' + Math.random();
-      const req = ['REQ', id, sub];
+      const req = [type, id, sub];
       socket.send(JSON.stringify(req));
 
       const close = () => {
@@ -190,7 +195,21 @@ class NosrtEmbed extends Component {
         }
       };
 
-      subs[id] = { ok, err, on_event };
+      const on_count = async (e) => {
+        if (type != 'COUNT') return; // misbehaving relay
+        events.push(e);
+        done();
+      };
+
+      subs[id] = { ok, err, on_event, on_count };
+    };
+
+    socket.listEvents = ({ sub, ok, err }) => {
+      socket.subscribe ({type: 'REQ', sub, ok, err});
+    };
+
+    socket.countEvents = ({ sub, ok, err }) => {
+      socket.subscribe ({type: 'COUNT', sub, ok: (events) => { ok(events.length ? events[0] : null) }, err});
     };
   }
 
@@ -210,6 +229,12 @@ class NosrtEmbed extends Component {
   listEvents({ socket, sub }) {
     return new Promise((ok, err) => {
       socket.listEvents({ sub, ok, err });
+    });
+  }
+
+  countEvents({ socket, sub }) {
+    return new Promise((ok, err) => {
+      socket.countEvents({ sub, ok, err });
     });
   }
 
@@ -311,36 +336,69 @@ class NosrtEmbed extends Component {
     }
     return 0;
   }
+
+  onListMetaEvents(events) {
+    for (let noteEvent of events) {
+      switch (noteEvent['kind']) {
+      case 6:
+        this.setState((state) => ({
+          repostsCount: state.repostsCount + 1,
+        }));
+        break;
+      case 7:
+        this.setState((state) => ({
+          likesCount: state.likesCount + 1,
+        }));
+        break;
+      case 1:
+        this.setState((state) => ({
+          repliesCount: state.repliesCount + 1,
+        }));
+        break;
+      case 9735:
+        this.setState((state) => ({
+          zapAmount: state.zapAmount + this.getZapAmount(noteEvent),
+        }));
+        break;
+      default:
+        console.log('Unknown note kind');
+      }
+    }
+  }
   
   fetchMeta({ socket, noteId }) {
+    if (socket.url.includes("wss://relay.nostr.band"))
+      return this.fetchMetaCount({ socket, noteId});
+    else
+      return this.fetchMetaList({ socket, noteId});
+  }
+
+  fetchMetaCount({ socket, noteId }) {
+    const getSub = (kind) => { return { kinds: [kind], '#e': [noteId] } };
+    this.countEvents({ socket, sub: getSub(1) }).then((c) => {
+      this.setState((state) => ({
+        repliesCount: c ? c.count : 0,
+      }));
+    });
+    this.countEvents({ socket, sub: getSub(6) }).then((c) => {
+      this.setState((state) => ({
+        repostsCount: c ? c.count : 0,
+      }));
+    });
+    this.countEvents({ socket, sub: getSub(7) }).then((c) => {
+      this.setState((state) => ({
+        likesCount: c ? c.count : 0,
+      }));
+    });
+    this.listEvents({ socket, sub: getSub(9735) }).then((events) => {
+      this.onListMetaEvents(events);
+    });
+  }
+
+  fetchMetaList({ socket, noteId }) {
     const sub = { kinds: [1, 6, 7, 9735], '#e': [noteId] };
     this.listEvents({ socket, sub }).then((events) => {
-      for (let noteEvent of events) {
-        switch (noteEvent['kind']) {
-          case 6:
-            this.setState((state) => ({
-              repostsCount: state.repostsCount + 1,
-            }));
-            break;
-          case 7:
-            this.setState((state) => ({
-              likesCount: state.likesCount + 1,
-            }));
-            break;
-          case 1:
-            this.setState((state) => ({
-              repliesCount: state.repliesCount + 1,
-            }));
-            break;
-          case 9735:
-            this.setState((state) => ({
-              zapAmount: state.zapAmount + this.getZapAmount(noteEvent),
-            }));
-            break;
-          default:
-            console.log('Unknown note kind');
-        }
-      }
+      this.onListMetaEvents(events);
     });
   }
 
@@ -414,9 +472,29 @@ class NosrtEmbed extends Component {
   formatContent() {
     if (!this.state.note.content) return "";
 
-    const MentionRegex = /(#\[\d+\])/gi;
+    const formatEventLink = (noteId) => {
+      const label = formatNoteId(noteId);
+      return (
+	  <a target="_blank" rel="noopener noreferrer nofollow"
+	href={`https://nostr.band/${noteId}`}>{label}</a>
+      )
+    }
+
+    const formatProfileLink = (npub, pubkey) => {
+      let label = formatNpub(npub);
+      if (pubkey in this.state.taggedProfiles) {
+	const tp = this.state.taggedProfiles[pubkey];
+	label = tp?.name || tp?.display_name || label;
+      }
+      return (
+	  <a target="_blank" rel="noopener noreferrer nofollow"
+	href={`https://nostr.band/${npub}`}>@{label}</a>
+      )
+    }
 
     const note = this.state.note;
+
+    const MentionRegex = /(#\[\d+\])/gi;
     const fragments = note.content.split(MentionRegex).map(match => {
       const matchTag = match.match(/#\[(\d+)\]/);
       if (matchTag && matchTag.length === 2) {
@@ -425,24 +503,10 @@ class NosrtEmbed extends Component {
           const ref = note.tags[idx];
           switch (ref[0]) {
           case "p": {
-	    const npub = getNpub(ref[1]);
-	    let label = formatNpub(npub);
-	    if (ref[1] in this.state.taggedProfiles) {
-	      const tp = this.state.taggedProfiles[ref[1]];
-	      label = tp?.name || tp?.display_name || label;
-	    }
-            return (
-		<a target="_blank" rel="noopener noreferrer nofollow"
-	          href={`https://nostr.band/${npub}`}>@{label}</a>
-	    )
+	    return formatProfileLink(getNpub(ref[1]), ref[1]);
           }
           case "e": {
-	    const noteId = getNoteId(ref[1]);
-	    const label = formatNoteId(noteId);
-            return (
-		<a target="_blank" rel="noopener noreferrer nofollow"
-	          href={`https://nostr.band/${noteId}`}>{label}</a>
-	    )
+	    return formatEventLink(getNoteId(ref[1]));
           }
           case "t": {
             return (
@@ -453,6 +517,18 @@ class NosrtEmbed extends Component {
 	  }
 	}
       } else {
+
+	const matchNostr = match.match(/nostr:([a-z0-9]+)/);
+	if (matchNostr && matchNostr.length === 2)
+	{
+	  if (matchNostr[1].startsWith("note1") || matchNostr[1].startsWith("nevent1")) {
+	    return formatEventLink(matchNostr[1]);
+	  } else if (matchNostr.startsWith("npub1")) {
+	    // FIXME add nprofile too!
+	    return formatProfileLink(matchNostr[1], parseNpub(matchNostr[1]));
+	  }
+	}
+
 	const urlRegex =
 	      /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
 
