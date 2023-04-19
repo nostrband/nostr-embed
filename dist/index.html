@@ -14,6 +14,7 @@
     <div id="nostr-embed-1"></div>
     <div id="nostr-embed-2"></div>
     <div id="nostr-embed-3"></div>
+    <div id="nostr-embed-4"></div>
 
     <script>
       !(function () {
@@ -68,6 +69,25 @@
         a.parentNode.insertBefore(n, a);
       })();
     </script>
+
+    <script>
+      !(function () {
+        const n = document.createElement('script');
+        n.type = 'text/javascript';
+        n.async = !0;
+        n.src = 'nostr-embed.js';
+        n.onload = function () {
+          nostrEmbed.init(
+            '50fa181359b0421710860501c700e383d448c2db2ede9eb5b7d4e5c951b2feb4',
+            '#nostr-embed-4',
+            'wss://relay.nostr.band/all',
+          );
+        };
+        const a = document.getElementsByTagName('script')[0];
+        a.parentNode.insertBefore(n, a);
+      })();
+    </script>
+
   </body>
 </html>
 

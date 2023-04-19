@@ -129,6 +129,11 @@ class NosrtEmbed extends Component {
           return;
         }
 
+        if (d[0] == 'COUNT' && d.length == 3) {
+          if (d[1] in subs) subs[d[1]].on_count(d[2]);
+          return;
+        }
+
         if (d[0] != 'EVENT' || d.length < 3) throw 'Unknown reply from relay';
 
         if (d[1] in subs) subs[d[1]].on_event(d[2]);
@@ -138,9 +143,9 @@ class NosrtEmbed extends Component {
       }
     };
 
-    socket.listEvents = ({ sub, ok, err }) => {
+    socket.subscribe = ({ type, sub, ok, err }) => {
       let id = 'embed-' + Math.random();
-      const req = ['REQ', id, sub];
+      const req = [type, id, sub];
       socket.send(JSON.stringify(req));
 
       const close = () => {
@@ -190,7 +195,21 @@ class NosrtEmbed extends Component {
         }
       };
 
-      subs[id] = { ok, err, on_event };
+      const on_count = async (e) => {
+        if (type != 'COUNT') return; // misbehaving relay
+        events.push(e);
+        done();
+      };
+
+      subs[id] = { ok, err, on_event, on_count };
+    };
+
+    socket.listEvents = ({ sub, ok, err }) => {
+      socket.subscribe ({type: 'REQ', sub, ok, err});
+    };
+
+    socket.countEvents = ({ sub, ok, err }) => {
+      socket.subscribe ({type: 'COUNT', sub, ok: (events) => { ok(events.length ? events[0] : null) }, err});
     };
   }
 
@@ -210,6 +229,12 @@ class NosrtEmbed extends Component {
   listEvents({ socket, sub }) {
     return new Promise((ok, err) => {
       socket.listEvents({ sub, ok, err });
+    });
+  }
+
+  countEvents({ socket, sub }) {
+    return new Promise((ok, err) => {
+      socket.countEvents({ sub, ok, err });
     });
   }
 
@@ -311,36 +336,69 @@ class NosrtEmbed extends Component {
     }
     return 0;
   }
+
+  onListMetaEvents(events) {
+    for (let noteEvent of events) {
+      switch (noteEvent['kind']) {
+      case 6:
+        this.setState((state) => ({
+          repostsCount: state.repostsCount + 1,
+        }));
+        break;
+      case 7:
+        this.setState((state) => ({
+          likesCount: state.likesCount + 1,
+        }));
+        break;
+      case 1:
+        this.setState((state) => ({
+          repliesCount: state.repliesCount + 1,
+        }));
+        break;
+      case 9735:
+        this.setState((state) => ({
+          zapAmount: state.zapAmount + this.getZapAmount(noteEvent),
+        }));
+        break;
+      default:
+        console.log('Unknown note kind');
+      }
+    }
+  }
   
   fetchMeta({ socket, noteId }) {
+    if (socket.url.includes("wss://relay.nostr.band"))
+      return this.fetchMetaCount({ socket, noteId});
+    else
+      return this.fetchMetaList({ socket, noteId});
+  }
+
+  fetchMetaCount({ socket, noteId }) {
+    const getSub = (kind) => { return { kinds: [kind], '#e': [noteId] } };
+    this.countEvents({ socket, sub: getSub(1) }).then((c) => {
+      this.setState((state) => ({
+        repliesCount: c ? c.count : 0,
+      }));
+    });
+    this.countEvents({ socket, sub: getSub(6) }).then((c) => {
+      this.setState((state) => ({
+        repostsCount: c ? c.count : 0,
+      }));
+    });
+    this.countEvents({ socket, sub: getSub(7) }).then((c) => {
+      this.setState((state) => ({
+        likesCount: c ? c.count : 0,
+      }));
+    });
+    this.listEvents({ socket, sub: getSub(9735) }).then((events) => {
+      this.onListMetaEvents(events);
+    });
+  }
+
+  fetchMetaList({ socket, noteId }) {
     const sub = { kinds: [1, 6, 7, 9735], '#e': [noteId] };
     this.listEvents({ socket, sub }).then((events) => {
-      for (let noteEvent of events) {
-        switch (noteEvent['kind']) {
-          case 6:
-            this.setState((state) => ({
-              repostsCount: state.repostsCount + 1,
-            }));
-            break;
-          case 7:
-            this.setState((state) => ({
-              likesCount: state.likesCount + 1,
-            }));
-            break;
-          case 1:
-            this.setState((state) => ({
-              repliesCount: state.repliesCount + 1,
-            }));
-            break;
-          case 9735:
-            this.setState((state) => ({
-              zapAmount: state.zapAmount + this.getZapAmount(noteEvent),
-            }));
-            break;
-          default:
-            console.log('Unknown note kind');
-        }
-      }
+      this.onListMetaEvents(events);
     });
   }
 
