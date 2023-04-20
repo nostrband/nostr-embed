@@ -1,6 +1,6 @@
 {
   "name": "nostr-embed",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Embed a Nostr note anywhere on the web",
   "sideEffects": [
     "*.css"

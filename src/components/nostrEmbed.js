@@ -495,6 +495,8 @@ class NosrtEmbed extends Component {
     const note = this.state.note;
 
     const MentionRegex = /(#\[\d+\])/gi;
+
+    // first - split by #[d] mentions
     const fragments = note.content.split(MentionRegex).map(match => {
       const matchTag = match.match(/#\[(\d+)\]/);
       if (matchTag && matchTag.length === 2) {
@@ -516,30 +518,38 @@ class NosrtEmbed extends Component {
           }
 	  }
 	}
-      } else {
 
-	const matchNostr = match.match(/nostr:([a-z0-9]+)/);
-	if (matchNostr && matchNostr.length === 2)
-	{
-	  if (matchNostr[1].startsWith("note1") || matchNostr[1].startsWith("nevent1")) {
-	    return formatEventLink(matchNostr[1]);
-	  } else if (matchNostr.startsWith("npub1")) {
-	    // FIXME add nprofile too!
-	    return formatProfileLink(matchNostr[1], parseNpub(matchNostr[1]));
-	  }
-	}
+	// unsupported #[d] ref
+	return match;
+      }
 
-	const urlRegex =
-	      /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
+      // now try splitting by nostr: links
+      return match.split(/(nostr:[a-z0-9]+)/gi).map(n => {
 
-	return match.split(urlRegex).map(a => {
+        const matchNostr = n.match(/nostr:([a-z0-9]+)/);
+        if (matchNostr && matchNostr.length === 2) {
+          if (matchNostr[1].startsWith("note1") || matchNostr[1].startsWith("nevent1")) {
+            // FIXME add naddr too
+            return formatEventLink(matchNostr[1]);
+          } else if (matchNostr.startsWith("npub1")) {
+            // FIXME add nprofile too
+            return formatProfileLink(matchNostr[1], parseNpub(matchNostr[1]));
+          }
+
+          // unsupported nostr: link
+          return n;
+        }
+
+	// finally, split by urls
+        const urlRegex =
+              /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
+        return n.split(urlRegex).map(a => {
           if (a.match(/^https?:\/\//)) {
             return this.formatLink(a)
           }
           return a;
-	});
-      }
-      return match;
+        });
+      });
     });
 
     return fragments;
