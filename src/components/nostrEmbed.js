@@ -2,8 +2,9 @@ import { Component } from 'preact';
 import * as secp from '@noble/secp256k1';
 import Profile from './profile';
 import Meta from './meta';
+import ProfileMeta from './profileMeta';
 import { decode } from 'light-bolt11-decoder'
-import { getNpub, getNoteId, formatNpub, formatNoteId, parseNoteId } from '../common';
+import { getNpub, getNoteId, formatNpub, formatNoteId, parseNoteId, parseNpub } from '../common';
 
 const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
@@ -12,8 +13,19 @@ const YOUTUBE_KEY_WORDS = ['youtube'];
 class NosrtEmbed extends Component {
   constructor(props) {
     super(props);
+
+    let id = props.id;
+    let kind = 1;
+    if (props.id.startsWith("npub1")) {
+      id = parseNpub(props.id);
+      kind = 0;
+    } else if (props.id.startsWith("note1")) {
+      id = parseNoteId(props.id);
+    }
+
     this.state = {
-      noteId: props.noteId,
+      id,
+      kind,
       relay: props.relay,
       note: {},
       profile: {},
@@ -23,6 +35,7 @@ class NosrtEmbed extends Component {
       repostsCount: 0,
       repliesCount: 0,
       zapAmount: 0,
+      followersCount: 0,
     };
   }
 
@@ -78,7 +91,10 @@ class NosrtEmbed extends Component {
   componentDidMount() {
 
     const start = (socket) => {
-      this.fetchNote({ socket });
+      switch (this.state.kind) {
+      case 0: return this.fetchProfile({ socket, profilePkey: this.state.id });
+      case 1: return this.fetchNote({ socket, noteId: this.state.id });
+      }
     };
 
     if (!window.__nostrEmbed) window.__nostrEmbed = {sockets: {}};
@@ -177,7 +193,7 @@ class NosrtEmbed extends Component {
             err('timeout on relay', socket.url);
           }
         },
-        sub.limit && sub.limit == 1 ? 2000 : 4000
+        sub.limit && sub.limit == 1 ? 2000 : 6000
       );
 
       const on_event = async (e) => {
@@ -238,8 +254,8 @@ class NosrtEmbed extends Component {
     });
   }
 
-  fetchNote({ socket }) {
-    const sub = { ids: [this.state.noteId], kinds: [1] };
+  fetchNote({ socket, noteId }) {
+    const sub = { ids: [noteId], kinds: [1] };
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
@@ -248,28 +264,21 @@ class NosrtEmbed extends Component {
             profilePkey: event.pubkey,
           });
           this.fetchProfile({ socket, profilePkey: event.pubkey });
-          this.fetchMeta({ socket, noteId: this.state.noteId });
+          this.fetchMeta({ socket, noteId });
           this.fetchTags({ socket, tags: event.tags });
         } else {
           console.log("Error: We can't find that note on this relay");
-          this.setState({
-            note: {
-              error: true,
-              content:
-                "Sorry, we weren't able to find this note on the specified relay.",
-            },
-          });
+	  throw "Event not found";
         }
       })
       .catch((error) => {
         console.log(`Error fetching note: ${error}`);
-        this.setState({
+	this.setState({
           note: {
             error: true,
-            content:
-              "Sorry, there was an error fetching this note from the specified relay. Most often, this is because the relay isn't responding.",
+            content: "Sorry, we weren't able to find and parse this note on the specified relay.",
           },
-        });
+	});
       });
   }
 
@@ -278,16 +287,25 @@ class NosrtEmbed extends Component {
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
-	  try {
-            let parsedProfile = JSON.parse(event.content);
-            this.setState({ profile: parsedProfile });
-	  } catch (e) {
-	    console.log("Error bad event content", e, event.content);
+          let parsedProfile = JSON.parse(event.content);
+	  parsedProfile.pubkey = profilePkey;
+          this.setState({ profile: parsedProfile });
+	  if (this.state.kind == 0) {
+            this.fetchProfileMeta({ socket, pubkey: profilePkey });
 	  }
-        }
+	} else {
+	  throw "Event not found";
+	}
       })
       .catch((error) => {
         console.log(`Error fetching profile: ${error}`);
+        this.setState({
+	  profile: {
+	    pubkey: profilePkey,
+	    error: true,
+	    about: "Sorry, we weren't able to find this profile on the specified relay.",
+	  },
+        });
       });
   }
 
@@ -368,9 +386,9 @@ class NosrtEmbed extends Component {
   
   fetchMeta({ socket, noteId }) {
     if (socket.url.includes("wss://relay.nostr.band"))
-      return this.fetchMetaCount({ socket, noteId});
+      return this.fetchMetaCount({ socket, noteId });
     else
-      return this.fetchMetaList({ socket, noteId});
+      return this.fetchMetaList({ socket, noteId });
   }
 
   fetchMetaCount({ socket, noteId }) {
@@ -400,6 +418,51 @@ class NosrtEmbed extends Component {
     this.listEvents({ socket, sub }).then((events) => {
       this.onListMetaEvents(events);
     });
+  }
+
+  onListProfileMetaEvents(events) {
+    for (let e of events) {
+      switch (e['kind']) {
+      case 3:
+        this.setState((state) => ({
+          followersCount: state.followersCount + 1,
+        }));
+        break;
+      case 9735:
+        this.setState((state) => ({
+          zapAmount: state.zapAmount + this.getZapAmount(e),
+        }));
+        break;
+      default:
+        console.log('Unknown event kind');
+      }
+    }
+  }
+
+  fetchProfileMetaCount({ socket, pubkey }) {
+    const getSub = (kind) => { return { kinds: [kind], '#p': [pubkey] } };
+    this.countEvents({ socket, sub: getSub(3) }).then((c) => {
+      this.setState((state) => ({
+        followersCount: c ? c.count : 0,
+      }));
+    });
+    this.listEvents({ socket, sub: getSub(9735) }).then((events) => {
+      this.onListProfileMetaEvents(events);
+    });
+  }
+
+  fetchProfileMetaList({ socket, pubkey }) {
+    const sub = { kinds: [3, 9735], '#p': [pubkey] };
+    this.listEvents({ socket, sub }).then((events) => {
+      this.onListProfileMetaEvents(events);
+    });
+  }
+
+  fetchProfileMeta({ socket, pubkey }) {
+    if (socket.url.includes("wss://relay.nostr.band"))
+      return this.fetchProfileMetaCount({ socket, pubkey });
+    else
+      return this.fetchProfileMetaList({ socket, pubkey });
   }
 
   formatLink(a) {
@@ -555,7 +618,7 @@ class NosrtEmbed extends Component {
     return fragments;
   }
 
-  render() {
+  renderNote() {
     return (
       <div class="nostrEmbedCard">
         <Profile
@@ -580,6 +643,44 @@ class NosrtEmbed extends Component {
         />
       </div>
     );
+  }
+
+  renderProfile() {
+    return (
+      <div class="nostrEmbedCard">
+        <Profile
+          profilePkey={this.state.id}
+          profile={this.state.profile}
+        />
+        <div
+          class={
+            this.state.profile.error
+              ? 'cardContent ne-text-red-800'
+              : 'cardContent'
+          }
+        >
+	{this.state.profile?.website
+	 ? <p>Website: <a href={this.state.profile?.website}
+	 target="_blank"
+	 rel="noopener noreferrer nofollow"
+	 >{this.state.profile?.website}</a></p>
+	 : ""}
+        {this.state.profile?.about || "Loading..."}
+        </div>
+        <ProfileMeta
+          profile={this.state.profile}
+          followersCount={this.state.followersCount}
+          zapAmount={this.state.zapAmount}
+        />
+      </div>
+    );
+  }
+
+  render() {
+    switch (this.state.kind) {
+    case 0: return this.renderProfile();
+    case 1: return this.renderNote();
+    }
   }
 }
 
