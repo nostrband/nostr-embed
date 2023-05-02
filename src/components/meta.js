@@ -4,18 +4,11 @@ import RepostIcon from './icons/repostIcon';
 import LinkIcon from './icons/linkIcon';
 import BoltIcon from './icons/boltIcon';
 import CopyText from './copyText';
-import { getNoteId } from '../common';
+import { getNoteId, formatZapAmount } from '../common';
 import style from './style.css';
 
 function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
   let date, encodedNoteId, formattedDate, formattedZapAmount;
-
-  const formatZapAmount = (a) => {
-    a /= 1000;
-    if (a >= 1000000) return (Math.round(a / 100000) / 10) + "M";
-    if (a >= 1000) return (Math.round(a / 100) / 10) + "K";
-    return a;
-  };
   
   if (note.id && note.created_at) {
     date = new Date(note.created_at * 1000);

@@ -5,7 +5,7 @@ import style from './style.css';
 
 function Profile({ profilePkey, profile }) {
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
-  if (profilePkey && profile) {
+  if (profilePkey) {
     encodedProfilePkey = getNpub(profilePkey);
     truncatedProfilePkey = `${formatNpub(encodedProfilePkey)}`;
     cachedProfilePicture = `https://media.nostr.band/thumbs/${profilePkey.slice(
@@ -24,7 +24,7 @@ function Profile({ profilePkey, profile }) {
       <div class="profileDetails">
         <div class="profileName">
           <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedProfilePkey}`}>
-            {profile.display_name || 'Loading...'}
+            {profile.display_name || profile.name || 'Loading...'}
           </a>
         </div>
         <div class="profilePkey">

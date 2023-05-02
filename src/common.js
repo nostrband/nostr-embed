@@ -50,3 +50,11 @@ export function formatNoteId(noteId) {
     10,
   )}...${noteId.slice(-6)}`;
 }
+
+
+export function formatZapAmount(a) {
+  a /= 1000;
+  if (a >= 1000000) return (Math.round(a / 100000) / 10) + "M";
+  if (a >= 1000) return (Math.round(a / 100) / 10) + "K";
+  return a;
+}

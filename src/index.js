@@ -1,14 +1,14 @@
 import { h, render } from 'preact';
 import NostrEmbed from './components/nostrEmbed';
 
-export function init(noteId, wrapper, relay) {
+export function init(id, wrapper, relay) {
 
   if (!relay)
-    relay = 'wss://relay.nostr.band/all';
+    relay = 'wss://relay.nostr.band/';
 
   const renderElement = document.querySelector(wrapper)
     ? document.querySelector(wrapper)
     : document.querySelector('body');
 
-  render(h(NostrEmbed, { noteId, relay }), renderElement);
+  render(h(NostrEmbed, { id, relay }), renderElement);
 }
