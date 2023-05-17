@@ -40,15 +40,15 @@ export function parseNpub(npub) {
 export function formatNpub(npub) {
   return `${npub.slice(
     0,
-    13
-  )}...${npub.slice(-6)}`;
+    12
+  )}...${npub.slice(-4)}`;
 }
 
 export function formatNoteId(noteId) {
   return `${noteId.slice(
     0,
     10,
-  )}...${noteId.slice(-6)}`;
+  )}...${noteId.slice(-4)}`;
 }
 
 

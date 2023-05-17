@@ -1,4 +1,5 @@
 import KeyIcon from './icons/keyIcon';
+import NostrichIcon from './icons/nostrichIcon';
 import CopyText from './copyText';
 import { getNpub, formatNpub } from '../common';
 import style from './style.css';
@@ -33,6 +34,14 @@ function Profile({ profilePkey, profile }) {
           <CopyText iconClasses="w-4 h-4" copyText={encodedProfilePkey} />
         </div>
       </div>
+
+      <div class="nostrichLink">
+        <a target="_blank" rel="noopener noreferrer nofollow" href={`https://heynostr.com`}
+          class="linkLink">
+          <NostrichIcon additionalClasses="w-4 h-4" />
+        </a>
+      </div>
+
     </div>
   );
 }

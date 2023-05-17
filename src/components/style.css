@@ -45,7 +45,7 @@
 }
 
 .profilePkey {
-  @apply ne-flex ne-flex-row ne-gap-2 ne-items-center;
+  @apply ne-flex ne-flex-row ne-gap-1 ne-items-center;
 }
 
 .cardMeta {
@@ -54,6 +54,7 @@
 
 hr {
   @apply ne-w-full ne-opacity-30 ne-m-1;
+  border-color: #ddd;
 }
 
 .cardInteractions {
@@ -96,4 +97,10 @@ hr {
 
 .copyText {
   @apply ne-hidden;
+}
+
+.nostrichLink {
+  @apply ne-flex;
+  flex-grow: 1;
+  justify-content: flex-end;
 }
