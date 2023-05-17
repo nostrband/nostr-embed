@@ -2,9 +2,11 @@ import KeyIcon from './icons/keyIcon';
 import NostrichIcon from './icons/nostrichIcon';
 import CopyText from './copyText';
 import { getNpub, formatNpub } from '../common';
+import ProfileImage from './prifileImage.js'
 import style from './style.css';
 
 function Profile({ profilePkey, profile }) {
+  const defaultImageUrl = "https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg"
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
   if (profilePkey) {
     encodedProfilePkey = getNpub(profilePkey);
@@ -16,12 +18,10 @@ function Profile({ profilePkey, profile }) {
 
   return (
     <div class="cardProfile">
-      <img
-        class="profileImg"
-        src={
-          cachedProfilePicture || 'https://via.placeholder.com/48?text=Loading'
-        }
-      />
+      {cachedProfilePicture && profile.picture ?
+          <ProfileImage thumbnail={cachedProfilePicture} fullImage={profile.picture} defaultImage={defaultImageUrl}/> :
+          null
+      }
       <div class="profileDetails">
         <div class="profileName">
           <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedProfilePkey}`}>
