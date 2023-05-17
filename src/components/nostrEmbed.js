@@ -640,6 +640,8 @@ class NosrtEmbed extends Component {
           repliesCount={this.state.repliesCount}
           repostsCount={this.state.repostsCount}
           zapAmount={this.state.zapAmount}
+          showZaps={this.props.showZaps}
+          showCopyNpubNote={this.props.showCopyNpubNote}
         />
       </div>
     );
@@ -671,6 +673,8 @@ class NosrtEmbed extends Component {
           profile={this.state.profile}
           followersCount={this.state.followersCount}
           zapAmount={this.state.zapAmount}
+          showZaps={this.props.showZaps}
+          showCopyNpubNote={this.props.showCopyNpubNote}
         />
       </div>
     );
