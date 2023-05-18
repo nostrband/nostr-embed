@@ -16,7 +16,9 @@
   text-align: center;
 }
 
-.cardContentMedia > video, .cardContentMedia > img, .cardContentMedia > iframe {
+.cardContentMedia > video,
+.cardContentMedia > img,
+.cardContentMedia > iframe {
   border-radius: 15px;
   width: 50%;
 }
@@ -103,4 +105,18 @@ hr {
   @apply ne-flex;
   flex-grow: 1;
   justify-content: flex-end;
+}
+
+.cardTitle {
+  margin: 0;
+}
+
+.cardDescription {
+  margin-top: 0;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
