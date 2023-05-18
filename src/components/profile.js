@@ -4,9 +4,9 @@ import CopyText from './copyText';
 import { getNpub, formatNpub } from '../common';
 import ProfileImage from './prifileImage.js'
 import style from './style.css';
+import defaultProfile from '../default_profile.svg'
 
 function Profile({ profilePkey, profile }) {
-  const defaultImageUrl = "https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg"
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
   if (profilePkey) {
     encodedProfilePkey = getNpub(profilePkey);
@@ -19,7 +19,7 @@ function Profile({ profilePkey, profile }) {
   return (
     <div class="cardProfile">
       {cachedProfilePicture && profile.picture ?
-          <ProfileImage thumbnail={cachedProfilePicture} fullImage={profile.picture} defaultImage={defaultImageUrl}/> :
+          <ProfileImage thumbnail={cachedProfilePicture} fullImage={profile.picture} defaultImage={defaultProfile}/> :
           null
       }
       <div class="profileDetails">

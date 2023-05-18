@@ -5,7 +5,7 @@ import CopyText from './copyText';
 import { getNpub, formatZapAmount } from '../common';
 import style from './style.css';
 
-function ProfileMeta({ profile, followersCount, zapAmount, showZaps, showCopyNpubNote }) {
+function ProfileMeta({ profile, followersCount, zapAmount, options }) {
   let npub, formattedZapAmount;
 
   if (profile && profile.pubkey) {
@@ -18,7 +18,7 @@ function ProfileMeta({ profile, followersCount, zapAmount, showZaps, showCopyNpu
       <hr />
       <div class="cardInteractions">
         {
-          showZaps ?
+          options && options.showZaps ?
               <div className="interactionContainer" title="Total sats zapped">
                 <BoltIcon additionalClasses="w-5 h-5"/>
                 <span className="zapAmount">{formattedZapAmount}</span>
@@ -38,7 +38,7 @@ function ProfileMeta({ profile, followersCount, zapAmount, showZaps, showCopyNpu
           </a>
         </div>
         {
-          showCopyNpubNote ?
+          options && options.showCopyAddr ?
               <div className="interactionContainer">
                 <CopyText
                     iconClasses="w-5 h-5"
