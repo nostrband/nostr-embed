@@ -1,10 +1,24 @@
 import { bech32 } from 'bech32';
 
+const utf8Decoder = new TextDecoder('utf-8')
+
 function hexToBytes(hex) {
   let bytes = [];
   for (let c = 0; c < hex.length; c += 2)
     bytes.push(parseInt(hex.substr(c, 2), 16));
   return bytes;
+}
+
+const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
+
+function bytesToHex(uint8a) {
+    // pre-caching improves the speed 6x
+    if (!(uint8a instanceof Uint8Array)) throw new Error('Uint8Array expected');
+    let hex = '';
+    for (let i = 0; i < uint8a.length; i++) {
+        hex += hexes[uint8a[i]];
+    }
+    return hex;
 }
 
 export function getNoteId(hexId) {
@@ -37,6 +51,35 @@ export function parseNpub(npub) {
   return fromWords(r.words);
 }
 
+export function parseNaddr(naddr) {
+
+    if(!naddr){
+        return;
+    }
+  const r = bech32.decode(naddr, 120)
+  let data = new Uint8Array(bech32.fromWords(r.words))
+
+  let tlv = parseTLV(data);
+
+    console.log(tlv);
+
+  if (!tlv[0]?.[0]) throw new Error('missing TLV 0 for naddr')
+  if (!tlv[2]?.[0]) throw new Error('missing TLV 2 for naddr')
+  if (tlv[2][0].length !== 32) throw new Error('TLV 2 should be 32 bytes')
+  if (!tlv[3]?.[0]) throw new Error('missing TLV 3 for naddr')
+  if (tlv[3][0].length !== 4) throw new Error('TLV 3 should be 4 bytes')
+
+    return {
+    type: 'naddr',
+    data: {
+      identifier: utf8Decoder.decode(tlv[0][0]),
+      pubkey: bytesToHex(tlv[2][0]),
+      kind: parseInt(bytesToHex(tlv[3][0]), 16),
+      relays: tlv[1] ? tlv[1].map(d => utf8Decoder.decode(d)) : []
+    }
+  }
+}
+
 export function formatNpub(npub) {
   return `${npub.slice(
     0,
@@ -57,4 +100,19 @@ export function formatZapAmount(a) {
   if (a >= 1000000) return (Math.round(a / 100000) / 10) + "M";
   if (a >= 1000) return (Math.round(a / 100) / 10) + "K";
   return a;
+}
+
+function parseTLV(data) {
+  let result = {}
+  let rest = data
+  while (rest.length > 0) {
+    let t = rest[0]
+    let l = rest[1]
+    let v = rest.slice(2, 2 + l)
+    rest = rest.slice(2 + l)
+    if (v.length < l) continue
+    result[t] = result[t] || []
+    result[t].push(v)
+  }
+  return result
 }

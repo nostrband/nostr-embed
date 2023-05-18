@@ -4,7 +4,7 @@ import Profile from './profile';
 import Meta from './meta';
 import ProfileMeta from './profileMeta';
 import { decode } from 'light-bolt11-decoder'
-import { getNpub, getNoteId, formatNpub, formatNoteId, parseNoteId, parseNpub } from '../common';
+import {getNpub, getNoteId, formatNpub, formatNoteId, parseNoteId, parseNpub, parseNaddr} from '../common';
 
 const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
@@ -17,10 +17,15 @@ class NostrEmbed extends Component {
     let id = props.id;
     let kind = 1;
     if (props.id.startsWith("npub1")) {
+      console.log("npub1npub1npub1npub1npub1npub1npub1")
       id = parseNpub(props.id);
       kind = 0;
     } else if (props.id.startsWith("note1")) {
       id = parseNoteId(props.id);
+    } else if (props.id.startsWith("naddr")) {
+      id = parseNaddr(props.id)
+      console.log(id)
+      kind = 2;
     }
 
     this.state = {
@@ -29,6 +34,7 @@ class NostrEmbed extends Component {
       relay: props.relay,
       note: {},
       profile: {},
+      profilesList: {},
       taggedProfiles: {},
       profilePkey: '',
       likesCount: 0,
@@ -94,6 +100,7 @@ class NostrEmbed extends Component {
       switch (this.state.kind) {
       case 0: return this.fetchProfile({ socket, profilePkey: this.state.id });
       case 1: return this.fetchNote({ socket, noteId: this.state.id });
+      case 2: return this.fetchProfilesList({ socket, data: this.state.id.data });
       }
     };
 
@@ -309,6 +316,23 @@ class NostrEmbed extends Component {
       });
   }
 
+  fetchProfilesList({ socket, data }) {
+    const sub = { kinds:[data.kind],"#d":[data.identifier], authors:[data.pubkey] };
+    this.getEvent({ socket, sub })
+        .then((event) => {
+          if (event) {
+            this.setState({ profilesList: this.getProfilesListObj(event.tags) });
+            this.fetchProfile({socket, profilePkey: event.pubkey })
+            this.fetchTags({ socket, tags: event.tags });
+          } else {
+            throw "Event not found";
+          }
+        })
+        .catch((error) => {
+          console.log(`Error fetching profile: ${error}`);
+        });
+  }
+
   fetchTags({ socket, tags }) {
     const sub = { kinds: [0], authors: [] };
     for (const t of tags) {
@@ -335,6 +359,25 @@ class NostrEmbed extends Component {
       .catch((error) => {
         console.log(`Error fetching tagged profiles: ${error}`);
       });
+  }
+
+  getProfilesListObj(tags){
+    let profilesList = {};
+
+    tags.forEach(tag=>{
+      if(tag && tag[0]){
+        if(tag[0] === 'name'){
+          profilesList.name = tag[1]
+        }
+        if(tag[0] === 'd'){
+          profilesList.d = tag[1]
+        }
+        if(tag[0] === 'description'){
+          profilesList.description = tag[1]
+        }
+      }
+    })
+    return profilesList;
   }
 
   getZapAmount(e) {
@@ -678,10 +721,44 @@ class NostrEmbed extends Component {
     );
   }
 
+  renderProfilesList() {
+    return (
+        <div class="nostrEmbedCard">
+          <Profile
+              profilePkey={this.props.id}
+              profile={this.state.profile}
+          />
+          <div>
+            profilesList
+            {JSON.stringify(this.state.profilesList)}
+          </div>
+          <div>
+            taggedProfiles
+            {
+              Object.keys(this.state.taggedProfiles).map(profilePkey => {
+                return <div key={profilePkey + 'aggedProfile'}>
+                  <Profile
+                    profilePkey={profilePkey}
+                    profile={this.state.taggedProfiles[profilePkey]}/>
+                </div>
+              })
+            }
+          </div>
+        {/*  <ProfileMeta
+              profile={this.state.profile}
+              followersCount={this.state.followersCount}
+              zapAmount={this.state.zapAmount}
+              options={this.props.options}
+          />*/}
+        </div>
+    );
+  }
+
   render() {
     switch (this.state.kind) {
     case 0: return this.renderProfile();
     case 1: return this.renderNote();
+    case 2: return this.renderProfilesList();
     }
   }
 }
