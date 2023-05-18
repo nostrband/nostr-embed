@@ -10,7 +10,7 @@ const IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const VIDEO_FILE_EXTENSIONS = ['.mov', '.mp4'];
 const YOUTUBE_KEY_WORDS = ['youtube'];
 
-class NosrtEmbed extends Component {
+class NostrEmbed extends Component {
   constructor(props) {
     super(props);
 
@@ -640,8 +640,7 @@ class NosrtEmbed extends Component {
           repliesCount={this.state.repliesCount}
           repostsCount={this.state.repostsCount}
           zapAmount={this.state.zapAmount}
-          showZaps={this.props.showZaps}
-          showCopyNpubNote={this.props.showCopyNpubNote}
+          options={this.props.options}
         />
       </div>
     );
@@ -673,8 +672,7 @@ class NosrtEmbed extends Component {
           profile={this.state.profile}
           followersCount={this.state.followersCount}
           zapAmount={this.state.zapAmount}
-          showZaps={this.props.showZaps}
-          showCopyNpubNote={this.props.showCopyNpubNote}
+          options={this.props.options}
         />
       </div>
     );
@@ -688,4 +686,4 @@ class NosrtEmbed extends Component {
   }
 }
 
-export default NosrtEmbed;
+export default NostrEmbed;

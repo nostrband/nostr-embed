@@ -7,7 +7,7 @@ import CopyText from './copyText';
 import { getNoteId, formatZapAmount } from '../common';
 import style from './style.css';
 
-function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, showZaps, showCopyNpubNote }) {
+function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, options }) {
   let date, encodedNoteId, formattedDate, formattedZapAmount;
   
   if (note.id && note.created_at) {
@@ -30,7 +30,7 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, showZap
       <hr />
       <div class="cardInteractions">
         {
-          showZaps ?
+          options && options.showZaps ?
               <div className="interactionContainer" title="Total sats zapped">
                 <BoltIcon additionalClasses="w-5 h-5"/>
                 <span className="zapAmount">{formattedZapAmount}</span>
@@ -58,7 +58,7 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, showZap
           </a>
         </div>
         {
-          showCopyNpubNote ?
+          options && options.showCopyAddr ?
               <div className="interactionContainer">
                 <CopyText
                     iconClasses="w-5 h-5"
