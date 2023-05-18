@@ -1,5 +1,4 @@
 import { formatNpub, getNpub } from "../common";
-import defaultProfile from "../default_profile.svg";
 import CopyText from "./copyText";
 import KeyIcon from "./icons/keyIcon";
 import NostrichIcon from "./icons/nostrichIcon";
@@ -21,7 +20,6 @@ function Profile({ profilePkey, profile, showIcon }) {
         <ProfileImage
           thumbnail={cachedProfilePicture}
           fullImage={profile.picture}
-          defaultImage={defaultProfile}
         />
       ) : null}
       <div class="profileDetails">
