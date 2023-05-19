@@ -341,12 +341,13 @@ class NostrEmbed extends Component {
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
-          this.setState({ profilesList: this.getProfilesListObj(event.tags) });
+          let profilesListObj = this.getProfilesListObj(event.tags);
+          profilesListObj.created_at = event.created_at;
+          profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`
+          this.setState({ profilesList: profilesListObj });
           this.fetchProfile({ socket, profilePkey: event.pubkey });
           this.fetchTags({ socket, tags: event.tags });
-          if (this.state.kind == 2) {
-            this.fetchMeta({ socket, data });
-          }
+          this.fetchMeta({ socket, data });
         } else {
           throw "Event not found";
         }
@@ -496,7 +497,7 @@ class NostrEmbed extends Component {
   }
 
   fetchMetaList({ socket, noteId, data }) {
-    const sub = this.getSubOnFetchMetaList(noteId, data)
+    const sub = this.getSubOnFetchMetaList({noteId, data})
 
     this.listEvents({ socket, sub }).then((events) => {
       this.onListMetaEvents(events);
@@ -814,8 +815,8 @@ class NostrEmbed extends Component {
           showIcon={true}
         />
         <div>
-          <h3 class="cardTitle">{this.state.profilesList.name}</h3>
-          <p class="cardDescription">{this.state.profilesList.d}</p>
+          <h3 class="cardTitle">{this.state.profilesList.name ? this.state.profilesList.name : this.state.profilesList.d}</h3>
+          <p class="cardDescription">{this.state.profilesList.description}</p>
           <div class="cardList">
             {Object.keys(this.state.taggedProfiles).map((profilePkey) => {
               return (
@@ -830,11 +831,13 @@ class NostrEmbed extends Component {
             })}
           </div>
         </div>
-        <ProfileMeta
-          profile={this.state.profile}
-          followersCount={this.state.followersCount}
-          zapAmount={this.state.zapAmount}
-          options={this.props.options}
+        <Meta
+            profilesList={this.state.profilesList}
+            likesCount={this.state.likesCount}
+            repliesCount={this.state.repliesCount}
+            repostsCount={this.state.repostsCount}
+            zapAmount={this.state.zapAmount}
+            options={this.props.options}
         />
       </div>
     );

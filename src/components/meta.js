@@ -7,11 +7,12 @@ import CopyText from './copyText';
 import { getNoteId, formatZapAmount } from '../common';
 import style from './style.css';
 
-function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, options }) {
-  let date, encodedNoteId, formattedDate, formattedZapAmount;
-  
-  if (note.id && note.created_at) {
-    date = new Date(note.created_at * 1000);
+function Meta({ note, profilesList, repliesCount, repostsCount, likesCount, zapAmount, options }) {
+  let date, encodedId, formattedDate, formattedZapAmount;
+
+  let createdAt = (note) ? note.created_at : (profilesList) ? profilesList.created_at : null;
+  if (createdAt) {
+    date = new Date(createdAt * 1000);
     formattedDate = date.toLocaleTimeString('en-US', {
       hour12: true,
       hour: '2-digit',
@@ -20,9 +21,15 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, options
       month: 'short',
       day: 'numeric',
     });
-    encodedNoteId = getNoteId(note.id);
-    formattedZapAmount = formatZapAmount(zapAmount);
   }
+  if (note && note.id) {
+    encodedId = getNoteId(note.id);
+  }
+  if (profilesList) {
+    encodedId = profilesList.id;
+  }
+
+  formattedZapAmount = formatZapAmount(zapAmount);
 
   return (
     <div class="cardMeta">
@@ -51,7 +58,7 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, options
           <span class="likesCount">{likesCount}</span>
         </div>
         <div class="interactionContainer">
-          <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedNoteId}`}
+          <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedId}`}
               class="linkLink">
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
             <span class="displayText">Open</span>
@@ -62,8 +69,8 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount, options
               <div className="interactionContainer">
                 <CopyText
                     iconClasses="w-5 h-5"
-                    displayText="Copy Note ID"
-                    copyText={encodedNoteId}
+                    displayText={note ? "Copy Note ID" : "Copy Naddr"}
+                    copyText={encodedId}
                 />
               </div>
               :
