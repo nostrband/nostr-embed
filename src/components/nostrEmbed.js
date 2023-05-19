@@ -25,14 +25,12 @@ class NostrEmbed extends Component {
     let id = props.id;
     let kind = 1;
     if (props.id.startsWith("npub1")) {
-      console.log("npub1npub1npub1npub1npub1npub1npub1");
       id = parseNpub(props.id);
       kind = 0;
     } else if (props.id.startsWith("note1")) {
       id = parseNoteId(props.id);
     } else if (props.id.startsWith("naddr")) {
       id = parseNaddr(props.id);
-      console.log(id);
       kind = 2;
     }
 
@@ -498,21 +496,23 @@ class NostrEmbed extends Component {
   }
 
   fetchMetaList({ socket, noteId, data }) {
-    const sub = {
-      if(noteId) {
-        return { kinds: [1, 6, 7, 9735], "#e": [noteId] };
-      },
-      if(data) {
-        return {
-          kinds: [1, 6, 7, 9735],
-          "#a": [`${data.kind}:${data.pubkey}:${data.identifier}`],
-        };
-      },
-    };
+    const sub = this.getSubOnFetchMetaList(noteId, data)
 
     this.listEvents({ socket, sub }).then((events) => {
       this.onListMetaEvents(events);
     });
+  }
+
+  getSubOnFetchMetaList({noteId, data}) {
+    if (noteId) {
+      return {kinds: [1, 6, 7, 9735], "#e": [noteId]};
+    }
+    if (data) {
+      return {
+        kinds: [1, 6, 7, 9735],
+        "#a": [`${data.kind}:${data.pubkey}:${data.identifier}`],
+      };
+    }
   }
 
   onListProfileMetaEvents(events) {
