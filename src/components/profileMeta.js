@@ -28,7 +28,7 @@ function ProfileMeta({ profile, followersCount, zapAmount, options }) {
         </div>
         <div class="interactionContainer">
           <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${npub}`}
-             className="linkLink">
+              class="linkLink">
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
             <span class="displayText">Open</span>
           </a>
