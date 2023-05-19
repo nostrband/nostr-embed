@@ -351,6 +351,7 @@ class NostrEmbed extends Component {
           let profilesListObj = this.getProfilesListObj(event.tags);
           profilesListObj.created_at = event.created_at;
           profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`;
+          profilesListObj.naddr = this.props.id;
           this.setState({ profilesList: profilesListObj });
           this.fetchProfile({ socket, profilePkey: event.pubkey });
           this.fetchTags({ socket, tags: event.tags });
@@ -880,7 +881,6 @@ class NostrEmbed extends Component {
         </div>
         <Meta
           profilesList={this.state.profilesList}
-          id={this.props.id}
           likesCount={this.state.likesCount}
           repliesCount={this.state.repliesCount}
           repostsCount={this.state.repostsCount}

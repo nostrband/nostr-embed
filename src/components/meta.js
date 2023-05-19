@@ -14,7 +14,6 @@ function Meta({
   likesCount,
   zapAmount,
   options,
-  id,
 }) {
   let date, encodedId, formattedDate, formattedZapAmount;
 
@@ -74,7 +73,7 @@ function Meta({
             href={
               note
                 ? `https://nostr.band/${encodedId}`
-                : `https://listr.lol/a/${id}`
+                : `https://listr.lol/a/${profilesList.naddr}`
             }
             class="linkLink"
           >
@@ -87,7 +86,7 @@ function Meta({
             <CopyText
               iconClasses="w-5 h-5"
               displayText={note ? "Copy Note ID" : "Copy ID"}
-              copyText={note ? note : id}
+              copyText={note ? note : profilesList.naddr}
             />
           </div>
         ) : null}

@@ -21,7 +21,9 @@ function Profile({ profilePkey, profile, options }) {
           thumbnail={cachedProfilePicture}
           fullImage={profile.picture}
         />
-      ) : null}
+      ) : (
+        <div class="profileWithoutImg" />
+      )}
       <div class="profileDetails">
         <div class="profileName">
           <a
