@@ -16,40 +16,30 @@ function Profile({ profilePkey, profile, showIcon }) {
 
   return (
     <div class="cardProfile">
-      {cachedProfilePicture && profile.picture ? (
-        <ProfileImage
-          thumbnail={cachedProfilePicture}
-          fullImage={profile.picture}
-        />
-      ) : null}
+      {cachedProfilePicture && profile.picture ?
+          <ProfileImage thumbnail={cachedProfilePicture} fullImage={profile.picture}/> :
+          null
+      }
       <div class="profileDetails">
         <div class="profileName">
-          <a
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            href={`https://nostr.band/${encodedProfilePkey}`}
-          >
-            {profile.display_name || profile.name || "Loading..."}
+          <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedProfilePkey}`}>
+            {profile.display_name || profile.name || 'Loading...'}
           </a>
         </div>
         <div class="profilePkey">
           <KeyIcon additionalClasses="w-4 h-4" />
-          <span class="pkey">{truncatedProfilePkey || "npub..."}</span>
+          <span class="pkey">{truncatedProfilePkey || 'npub...'}</span>
           <CopyText iconClasses="w-4 h-4" copyText={encodedProfilePkey} />
         </div>
       </div>
 
       {showIcon && (
-        <div class="nostrichLink">
-          <a
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            href={`https://heynostr.com`}
-            class="linkLink"
-          >
-            <NostrichIcon additionalClasses="w-4 h-4" />
-          </a>
-        </div>
+          <div className="nostrichLink">
+            <a target="_blank" rel="noopener noreferrer nofollow" href={`https://heynostr.com`}
+               className="linkLink">
+              <NostrichIcon additionalClasses="w-4 h-4"/>
+            </a>
+          </div>
       )}
     </div>
   );
