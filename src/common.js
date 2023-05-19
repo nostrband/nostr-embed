@@ -1,24 +1,13 @@
 import { bech32 } from 'bech32';
 
 const utf8Decoder = new TextDecoder('utf-8')
+const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
 
 function hexToBytes(hex) {
   let bytes = [];
   for (let c = 0; c < hex.length; c += 2)
     bytes.push(parseInt(hex.substr(c, 2), 16));
   return bytes;
-}
-
-const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
-
-function bytesToHex(uint8a) {
-    // pre-caching improves the speed 6x
-    if (!(uint8a instanceof Uint8Array)) throw new Error('Uint8Array expected');
-    let hex = '';
-    for (let i = 0; i < uint8a.length; i++) {
-        hex += hexes[uint8a[i]];
-    }
-    return hex;
 }
 
 export function getNoteId(hexId) {
@@ -53,15 +42,14 @@ export function parseNpub(npub) {
 
 export function parseNaddr(naddr) {
 
-    if(!naddr){
-        return;
-    }
+  if (!naddr) {
+    return;
+  }
+
   const r = bech32.decode(naddr, 120)
   let data = new Uint8Array(bech32.fromWords(r.words))
 
   let tlv = parseTLV(data);
-
-    console.log(tlv);
 
   if (!tlv[0]?.[0]) throw new Error('missing TLV 0 for naddr')
   if (!tlv[2]?.[0]) throw new Error('missing TLV 2 for naddr')
@@ -69,7 +57,7 @@ export function parseNaddr(naddr) {
   if (!tlv[3]?.[0]) throw new Error('missing TLV 3 for naddr')
   if (tlv[3][0].length !== 4) throw new Error('TLV 3 should be 4 bytes')
 
-    return {
+  return {
     type: 'naddr',
     data: {
       identifier: utf8Decoder.decode(tlv[0][0]),
@@ -115,4 +103,14 @@ function parseTLV(data) {
     result[t].push(v)
   }
   return result
+}
+
+function bytesToHex(uint8a) {
+  // pre-caching improves the speed 6x
+  if (!(uint8a instanceof Uint8Array)) throw new Error('Uint8Array expected');
+  let hex = '';
+  for (let i = 0; i < uint8a.length; i++) {
+    hex += hexes[uint8a[i]];
+  }
+  return hex;
 }
