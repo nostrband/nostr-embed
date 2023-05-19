@@ -16,8 +16,8 @@ function Profile({ profilePkey, profile, showIcon }) {
 
   return (
     <div class="cardProfile">
-      {cachedProfilePicture && profile.picture ?
-          <ProfileImage thumbnail={cachedProfilePicture} fullImage={profile.picture}/> :
+      {cachedProfilePicture && profile.picture ? (
+              <ProfileImage thumbnail={cachedProfilePicture} fullImage={profile.picture}/>) :
           null
       }
       <div class="profileDetails">
