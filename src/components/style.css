@@ -119,6 +119,7 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin-top: 10px;
 }
 
 .profileWithoutImg {
@@ -126,4 +127,9 @@ hr {
   height: 50px;
   background-color: #e9e9e9;
   border-radius: 50%;
+}
+
+.diffProfiles {
+  font-weight: bold;
+  font-size: 1.2rem;
 }

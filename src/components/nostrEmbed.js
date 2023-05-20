@@ -31,7 +31,11 @@ class NostrEmbed extends Component {
       id = parseNoteId(props.id);
     } else if (props.id.startsWith("naddr")) {
       id = parseNaddr(props.id);
-      kind = 2;
+      if (id.data.identifier) {
+        kind = 2;
+      } else {
+        kind = 3;
+      }
     }
 
     this.state = {
@@ -48,6 +52,7 @@ class NostrEmbed extends Component {
       repliesCount: 0,
       zapAmount: 0,
       followersCount: 0,
+      countTaggedProfiles: 0,
     };
   }
 
@@ -109,6 +114,8 @@ class NostrEmbed extends Component {
           return this.fetchNote({ socket, noteId: this.state.id });
         case 2:
           return this.fetchProfilesList({ socket, data: this.state.id.data });
+        case 3:
+          return this.fetchProfilesList({ socket, data: this.state.id.data });
       }
     };
 
@@ -139,8 +146,8 @@ class NostrEmbed extends Component {
       socket.starts = null;
     };
 
-    socket.onerror = () => {
-      console.log(`Failed to connect to Nostr relay: ${socket.url}`);
+    socket.onerror = (ev) => {
+      console.log(`Failed to connect to Nostr relay: ${socket.url}}`);
     };
 
     const subs = {};
@@ -343,7 +350,8 @@ class NostrEmbed extends Component {
         if (event) {
           let profilesListObj = this.getProfilesListObj(event.tags);
           profilesListObj.created_at = event.created_at;
-          profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`
+          profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`;
+          profilesListObj.naddr = this.props.id;
           this.setState({ profilesList: profilesListObj });
           this.fetchProfile({ socket, profilePkey: event.pubkey });
           this.fetchTags({ socket, tags: event.tags });
@@ -366,11 +374,24 @@ class NostrEmbed extends Component {
 
   fetchTags({ socket, tags }) {
     const sub = { kinds: [0], authors: [] };
+    let count = 0;
+
     for (const t of tags) {
+      if (sub.authors.length < 100) {
+        if (t.length >= 2 && t[0] == "p") {
+          sub.authors.push(t[1]);
+        }
+      }
+
       if (t.length >= 2 && t[0] == "p") {
-        sub.authors.push(t[1]);
+        count++;
       }
     }
+
+    this.setState((state) => ({
+      countTaggedProfiles: state.countTaggedProfiles + count,
+    }));
+
     if (!sub.authors.length) return;
 
     this.listEvents({ socket, sub })
@@ -497,16 +518,16 @@ class NostrEmbed extends Component {
   }
 
   fetchMetaList({ socket, noteId, data }) {
-    const sub = this.getSubOnFetchMetaList({noteId, data})
+    const sub = this.getSubOnFetchMetaList({ noteId, data });
 
     this.listEvents({ socket, sub }).then((events) => {
       this.onListMetaEvents(events);
     });
   }
 
-  getSubOnFetchMetaList({noteId, data}) {
+  getSubOnFetchMetaList({ noteId, data }) {
     if (noteId) {
-      return {kinds: [1, 6, 7, 9735], "#e": [noteId]};
+      return { kinds: [1, 6, 7, 9735], "#e": [noteId] };
     }
     if (data) {
       return {
@@ -736,13 +757,26 @@ class NostrEmbed extends Component {
     return fragments;
   }
 
+  getDiff() {
+    let diff;
+    if (
+      Object.keys(this.state.taggedProfiles).length > 0 &&
+      this.state.countTaggedProfiles
+    ) {
+      diff =
+        this.state.countTaggedProfiles -
+        Object.keys(this.state.taggedProfiles).length;
+    }
+    return diff;
+  }
+
   renderNote() {
     return (
       <div class="nostrEmbedCard">
         <Profile
           profilePkey={this.state.profilePkey}
           profile={this.state.profile}
-          showIcon={true}
+          options={this.props.options}
         />
         <div
           class={
@@ -771,7 +805,7 @@ class NostrEmbed extends Component {
         <Profile
           profilePkey={this.state.id}
           profile={this.state.profile}
-          showIcon={true}
+          options={this.props.options}
         />
         <div
           class={
@@ -812,11 +846,19 @@ class NostrEmbed extends Component {
         <Profile
           profilePkey={this.props.id}
           profile={this.state.profile}
-          showIcon={true}
+          options={this.props.options}
         />
         <div>
-          <h3 class="cardTitle">{this.state.profilesList.name ? this.state.profilesList.name : this.state.profilesList.d}</h3>
-          <p class="cardDescription">{this.state.profilesList.description}</p>
+          <h3 class="cardTitle">
+            {this.state.kind === 2 && this.state.profilesList.name
+              ? this.state.profilesList.name
+              : this.state.profilesList.d}
+            {this.state.kind === 3 && "Following: "}(
+            {this.state.taggedProfiles ? this.state.countTaggedProfiles : 0})
+          </h3>
+          {this.state.kind === 2 && (
+            <p class="cardDescription">{this.state.profilesList.description}</p>
+          )}
           <div class="cardList">
             {Object.keys(this.state.taggedProfiles).map((profilePkey) => {
               return (
@@ -824,20 +866,26 @@ class NostrEmbed extends Component {
                   <Profile
                     profilePkey={profilePkey}
                     profile={this.state.taggedProfiles[profilePkey]}
-                    showIcon={false}
                   />
                 </div>
               );
             })}
+            {this.state.countTaggedProfiles > 0 &&
+            this.state.countTaggedProfiles >
+              Object.keys(this.state.taggedProfiles).length ? (
+              <div class="diffProfiles">
+                And {this.getDiff()} more profiles.
+              </div>
+            ) : null}
           </div>
         </div>
         <Meta
-            profilesList={this.state.profilesList}
-            likesCount={this.state.likesCount}
-            repliesCount={this.state.repliesCount}
-            repostsCount={this.state.repostsCount}
-            zapAmount={this.state.zapAmount}
-            options={this.props.options}
+          profilesList={this.state.profilesList}
+          likesCount={this.state.likesCount}
+          repliesCount={this.state.repliesCount}
+          repostsCount={this.state.repostsCount}
+          zapAmount={this.state.zapAmount}
+          options={this.props.options}
         />
       </div>
     );
@@ -850,6 +898,8 @@ class NostrEmbed extends Component {
       case 1:
         return this.renderNote();
       case 2:
+        return this.renderProfilesList();
+      case 3:
         return this.renderProfilesList();
     }
   }
