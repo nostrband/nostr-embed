@@ -844,7 +844,7 @@ class NostrEmbed extends Component {
     return (
       <div class="nostrEmbedCard">
         <Profile
-          profilePkey={this.props.id}
+          profilePkey={this.state.id.data.pubkey}
           profile={this.state.profile}
           options={this.props.options}
         />
