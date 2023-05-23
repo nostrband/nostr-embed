@@ -25,5 +25,3 @@ dist-ssr
 package-lock.json
 
 /dist/index.html
-/dist/nostr-embed.js.gz
-/dist/nostr-embed.js.LICENSE.txt
