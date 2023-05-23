@@ -1,6 +1,6 @@
 {
   "name": "nostr-embed",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Embed a Nostr event anywhere on the web",
   "sideEffects": [
     "*.css"
@@ -15,7 +15,10 @@
   ],
   "author": "Jeff Gardner <erskingardner@gmail.com>",
   "contributors": [
-    "Artur Brugeman <artur@nostr.band>"
+    "Artur Brugeman <artur@nostr.band>",
+    "KristinaZhur <kris07081992@gmail.com>",
+    "KateKaliaha <kolagaekaterina@gmail.com>",
+    "Denis Monich <denis.monich.j.d@gmail.com>"
   ],
   "license": "MIT",
   "dependencies": {
