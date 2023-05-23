@@ -1,18 +1,30 @@
-import HeartIcon from './icons/heartIcon';
-import ReplyIcon from './icons/replyIcon';
-import RepostIcon from './icons/repostIcon';
-import LinkIcon from './icons/linkIcon';
-import BoltIcon from './icons/boltIcon';
-import CopyText from './copyText';
-import { getNoteId, formatZapAmount } from '../common';
-import style from './style.css';
+import { formatZapAmount, getNoteId } from "../common";
+import CopyText from "./copyText";
+import BoltIcon from "./icons/boltIcon";
+import HeartIcon from "./icons/heartIcon";
+import LinkIcon from "./icons/linkIcon";
+import ReplyIcon from "./icons/replyIcon";
+import RepostIcon from "./icons/repostIcon";
 
-function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
-  let date, encodedNoteId, formattedDate, formattedZapAmount;
-  
-  if (note.id && note.created_at) {
-    date = new Date(note.created_at * 1000);
-    formattedDate = date.toLocaleTimeString('en-US', {
+function Meta({
+  note,
+  profilesList,
+  repliesCount,
+  repostsCount,
+  likesCount,
+  zapAmount,
+  options,
+}) {
+  let date, encodedId, formattedDate, formattedZapAmount;
+
+  let createdAt = note
+    ? note.created_at
+    : profilesList
+    ? profilesList.created_at
+    : null;
+  if (createdAt) {
+    date = new Date(createdAt * 1000);
+    formattedDate = date.toLocaleTimeString("en-US", {
       hour12: true,
       hour: '2-digit',
       minute: '2-digit',
@@ -20,19 +32,28 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
       month: 'short',
       day: 'numeric',
     });
-    encodedNoteId = getNoteId(note.id);
-    formattedZapAmount = formatZapAmount(zapAmount);
   }
+
+  if (note && note.id) {
+    encodedId = getNoteId(note.id);
+  }
+  if (profilesList) {
+    encodedId = profilesList.id;
+  }
+
+  formattedZapAmount = formatZapAmount(zapAmount);
 
   return (
     <div class="cardMeta">
       <div class="cardDate">{formattedDate}</div>
       <hr />
       <div class="cardInteractions">
-        <div class="interactionContainer" title="Total sats zapped">
-          <BoltIcon additionalClasses="w-5 h-5" />
-          <span class="zapAmount">{formattedZapAmount}</span>
-        </div>
+        {options && options.showZaps ? (
+          <div className="interactionContainer" title="Total sats zapped">
+            <BoltIcon additionalClasses="w-5 h-5" />
+            <span className="zapAmount">{formattedZapAmount}</span>
+          </div>
+        ) : null}
         <div class="interactionContainer" title="Number of replies">
           <ReplyIcon additionalClasses="w-5 h-5" />
           <span class="repliesCount">{repliesCount}</span>
@@ -46,19 +67,29 @@ function Meta({ note, repliesCount, repostsCount, likesCount, zapAmount }) {
           <span class="likesCount">{likesCount}</span>
         </div>
         <div class="interactionContainer">
-          <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${encodedNoteId}`}
-              class="linkLink">
+          <a
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            href={
+              note
+                ? `https://nostr.band/${encodedId}`
+                : `https://listr.lol/a/${profilesList.naddr}`
+            }
+            class="linkLink"
+          >
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
             <span class="displayText">Open</span>
           </a>
         </div>
-        <div class="interactionContainer">
-          <CopyText
-            iconClasses="w-5 h-5"
-            displayText="Copy Note ID"
-            copyText={encodedNoteId}
-          />
-        </div>
+        {options && options.showCopyAddr ? (
+          <div className="interactionContainer">
+            <CopyText
+              iconClasses="w-5 h-5"
+              displayText={note ? "Copy Note ID" : "Copy ID"}
+              copyText={note ? note : profilesList.naddr}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

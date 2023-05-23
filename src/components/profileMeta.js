@@ -1,11 +1,10 @@
-import FollowersIcon from './icons/followersIcon';
-import LinkIcon from './icons/linkIcon';
-import BoltIcon from './icons/boltIcon';
-import CopyText from './copyText';
-import { getNpub, formatZapAmount } from '../common';
-import style from './style.css';
+import { formatZapAmount, getNpub } from "../common";
+import CopyText from "./copyText";
+import BoltIcon from "./icons/boltIcon";
+import FollowersIcon from "./icons/followersIcon";
+import LinkIcon from "./icons/linkIcon";
 
-function ProfileMeta({ profile, followersCount, zapAmount }) {
+function ProfileMeta({ profile, followersCount, zapAmount, options }) {
   let npub, formattedZapAmount;
 
   if (profile && profile.pubkey) {
@@ -17,10 +16,12 @@ function ProfileMeta({ profile, followersCount, zapAmount }) {
     <div class="cardMeta">
       <hr />
       <div class="cardInteractions">
-        <div class="interactionContainer" title="Total sats zapped">
-          <BoltIcon additionalClasses="w-5 h-5" />
-          <span class="zapAmount">{formattedZapAmount}</span>
-        </div>
+        {options && options.showZaps ? (
+          <div className="interactionContainer" title="Total sats zapped">
+            <BoltIcon additionalClasses="w-5 h-5" />
+            <span className="zapAmount">{formattedZapAmount}</span>
+          </div>
+        ) : null}
         <div class="interactionContainer" title="Number of followers">
           <FollowersIcon additionalClasses="w-5 h-5" />
           <span class="followersCount">{followersCount}</span>
@@ -32,13 +33,15 @@ function ProfileMeta({ profile, followersCount, zapAmount }) {
             <span class="displayText">Open</span>
           </a>
         </div>
-        <div class="interactionContainer">
-          <CopyText
-            iconClasses="w-5 h-5"
-            displayText="Copy Npub"
-            copyText={npub}
-          />
-        </div>
+        {options && options.showCopyAddr ? (
+          <div className="interactionContainer">
+            <CopyText
+              iconClasses="w-5 h-5"
+              displayText="Copy Npub"
+              copyText={npub}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

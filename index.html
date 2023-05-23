@@ -12,10 +12,58 @@
     <h1>Testing the Nostr Embed</h1>
 
     <div id="nostr-embed-1"></div>
-    <!--div id="nostr-embed-2"></div-->
+    <div id="nostr-embed-2"></div>
     <div id="nostr-embed-3"></div>
     <div id="nostr-embed-4"></div>
     <div id="nostr-embed-5"></div>
+
+    <!-- <script>
+      !(function () {
+        const n = document.createElement("script");
+        n.type = "text/javascript";
+        n.async = !0;
+        n.src = "nostr-embed.js";
+        n.onload = function () {
+          const options = {
+            showCopyAddr: true,
+            showZaps: true,
+            hideNostrich: false,
+          };
+          nostrEmbed.init(
+            "755816a0ef90df5fe29fa6c4256d7fedefb22fcd213b60369b6e93f977796614",
+            "#nostr-embed-1",
+            "wss://relay.damus.io",
+            options
+          );
+        };
+        const a = document.getElementsByTagName("script")[0];
+        a.parentNode.insertBefore(n, a);
+      })();
+    </script> -->
+
+    <!-- <script>
+      !(function () {
+        const n = document.createElement("script");
+        n.type = "text/javascript";
+        n.async = !0;
+        n.src = "nostr-embed.js";
+        n.onload = function () {
+          const options = {
+            showCopyAddr: true,
+            showZaps: true,
+            hideNostrich: false,
+          };
+          nostrEmbed.init(
+            "naddr1qq9yummnw3ezq3r9weesygpn2m0xrvukg7f3e69jzs9jh2ur0cypps8029dmayk7qfyqgzutm5psgqqqw5cqcu7kar",
+            "#nostr-embed-3",
+            "wss://relay.nostr.band/",
+            options
+          );
+        };
+        const a = document.getElementsByTagName("script")[0];
+        a.parentNode.insertBefore(n, a);
+      })();
+    </script> -->
 
     <script>
       !(function () {
@@ -24,10 +72,16 @@
         n.async = !0;
         n.src = 'nostr-embed.js';
         n.onload = function () {
+          const options = {
+            showCopyAddr: true,
+            showZaps: true,
+            hideNostrich: false,
+          };
           nostrEmbed.init(
-            '755816a0ef90df5fe29fa6c4256d7fedefb22fcd213b60369b6e93f977796614',
-            '#nostr-embed-1',
-            'wss://relay.damus.io',
+            "naddr1qqqqz9nhwden5te0wfjkccte9ehx7um5wghxyctwvspzpxfk55777wwhztugdtr79m2snn3z8df5sdxa98v4e2af767qrme4qvzqqqqqqvlsdjqw",
+            "#nostr-embed-2",
+            "wss://relay.nostr.band/",
+            options
           );
         };
         const a = document.getElementsByTagName('script')[0];
@@ -89,24 +143,29 @@
       })();
     </script-->
 
-    <script>
+    <!-- <script>
       !(function () {
         const n = document.createElement('script');
         n.type = 'text/javascript';
         n.async = !0;
         n.src = 'nostr-embed.js';
         n.onload = function () {
+          const options = {
+            showCopyAddr: true,
+            showZaps: true,
+            hideNostrich: false,
+          };
           nostrEmbed.init(
-            'npub10awzknjg5r5lajnr53438ndcyjylgqsrnrtq5grs495v42qc6awsj45ys7',
-            '#nostr-embed-5',
-            'wss://relay.nostr.band/',
+            "npub10awzknjg5r5lajnr53438ndcyjylgqsrnrtq5grs495v42qc6awsj45ys7",
+            "#nostr-embed-5",
+            "wss://relay.nostr.band/",
+            options
           );
         };
         const a = document.getElementsByTagName('script')[0];
         a.parentNode.insertBefore(n, a);
       })();
-    </script>
-
+    </script> -->
   </body>
 </html>
 
