@@ -26,11 +26,11 @@ function Meta({
     date = new Date(createdAt * 1000);
     formattedDate = date.toLocaleTimeString("en-US", {
       hour12: true,
-      hour: "2-digit",
-      minute: "2-digit",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+      hour: '2-digit',
+      minute: '2-digit',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   }
 
