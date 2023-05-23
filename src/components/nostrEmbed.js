@@ -853,7 +853,7 @@ class NostrEmbed extends Component {
             {this.state.kind === 2 && this.state.profilesList.name
               ? this.state.profilesList.name
               : this.state.profilesList.d}
-            {this.state.kind === 3 && "Following"}(
+            {this.state.kind === 3 && "Following "}(
             {this.state.taggedProfiles ? this.state.countTaggedProfiles : 0})
           </h3>
           {this.state.kind === 2 && (
