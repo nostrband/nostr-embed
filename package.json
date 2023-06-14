@@ -1,6 +1,6 @@
 {
   "name": "nostr-embed",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Embed a Nostr event anywhere on the web",
   "sideEffects": [
     "*.css"
