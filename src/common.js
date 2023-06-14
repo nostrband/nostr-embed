@@ -40,16 +40,33 @@ export function parseNpub(npub) {
   return fromWords(r.words);
 }
 
+export function parseNprofile(nprofile) {
+  const r = bech32.decode(nprofile, 300);
+  if (r.prefix != "nprofile") return null;
+
+  const data = new Uint8Array(bech32.fromWords(r.words))
+  const tlv = parseTLV(data);
+  if (!tlv[0]?.[0]) throw new Error('missing TLV 0 for nprofile')
+  if (tlv[0][0].length !== 32) throw new Error('TLV 0 should be 32 bytes')
+
+  return {
+    type: 'nprofile',
+    data: {
+      pubkey: bytesToHex(tlv[0][0]),
+      relays: tlv[1] ? tlv[1].map(d => utf8Decoder.decode(d)) : []
+    }
+  }
+}
+
 export function parseNaddr(naddr) {
 
   if (!naddr) {
     return;
   }
 
-  const r = bech32.decode(naddr, 120)
-  let data = new Uint8Array(bech32.fromWords(r.words))
-
-  let tlv = parseTLV(data);
+  const r = bech32.decode(naddr, 300)
+  const data = new Uint8Array(bech32.fromWords(r.words))
+  const tlv = parseTLV(data);
 
   if (!tlv[0]?.[0]) throw new Error('missing TLV 0 for naddr')
   if (!tlv[2]?.[0]) throw new Error('missing TLV 2 for naddr')

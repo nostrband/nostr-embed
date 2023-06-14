@@ -9,6 +9,7 @@ import {
   parseNaddr,
   parseNoteId,
   parseNpub,
+  parseNprofile,
 } from "../common";
 import Meta from "./meta";
 import Profile from "./profile";
@@ -657,8 +658,8 @@ class NostrEmbed extends Component {
   formatContent() {
     if (!this.state.note.content) return "";
 
-    const formatEventLink = (noteId) => {
-      const label = formatNoteId(noteId);
+    const formatEventLink = (noteOrNaddr) => {
+      const label = formatNoteId(noteOrNaddr);
       return (
         <a
           target="_blank"
@@ -671,7 +672,7 @@ class NostrEmbed extends Component {
     };
 
     const formatProfileLink = (npub, pubkey) => {
-      let label = formatNpub(npub);
+      const label = formatNpub(npub);
       if (pubkey in this.state.taggedProfiles) {
         const tp = this.state.taggedProfiles[pubkey];
         label = tp?.name || tp?.display_name || label;
@@ -705,6 +706,8 @@ class NostrEmbed extends Component {
             case "e": {
               return formatEventLink(getNoteId(ref[1]));
             }
+	    // not adding support for 'a' - too much code to format the naddr,
+	    // and this method is deprecated, so let's hope we won't need this
             case "t": {
               return (
                 <a
@@ -729,18 +732,26 @@ class NostrEmbed extends Component {
         if (matchNostr && matchNostr.length === 2) {
           if (
             matchNostr[1].startsWith("note1") ||
-            matchNostr[1].startsWith("nevent1")
+            matchNostr[1].startsWith("nevent1") ||
+            matchNostr[1].startsWith("naddr1")
           ) {
-            // FIXME add naddr too
             return formatEventLink(matchNostr[1]);
-          } else if (matchNostr.startsWith("npub1")) {
-            // FIXME add nprofile too
-            return formatProfileLink(matchNostr[1], parseNpub(matchNostr[1]));
+          } else if (matchNostr[1].startsWith("npub1")) {
+	    const npub = matchNostr[1];
+	    const pubkey = parseNpub(matchNostr[1]);
+	    if (pubkey)
+              return formatProfileLink(npub, pubkey);
+          } else if (matchNostr[1].startsWith("nprofile1")) {
+	    const {type, data} = parseNprofile(matchNostr[1]);
+	    if (data) {
+	      const npub = getNpub(data.pubkey);
+              return formatProfileLink(npub, data.pubkey);
+	    }
           }
 
-          // unsupported nostr: link
+          // unsupported or bad nostr: link
           return n;
-        }
+	}
 
         // finally, split by urls
         const urlRegex =
