@@ -664,7 +664,7 @@ class NostrEmbed extends Component {
         <a
           target="_blank"
           rel="noopener noreferrer nofollow"
-          href={`https://nostr.band/${noteId}`}
+          href={`https://nostr.band/${noteOrNaddr}`}
         >
           {label}
         </a>
