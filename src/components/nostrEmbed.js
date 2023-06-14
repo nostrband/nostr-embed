@@ -672,7 +672,7 @@ class NostrEmbed extends Component {
     };
 
     const formatProfileLink = (npub, pubkey) => {
-      const label = formatNpub(npub);
+      let label = formatNpub(npub);
       if (pubkey in this.state.taggedProfiles) {
         const tp = this.state.taggedProfiles[pubkey];
         label = tp?.name || tp?.display_name || label;
