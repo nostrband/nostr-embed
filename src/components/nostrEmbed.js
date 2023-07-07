@@ -14,6 +14,7 @@ import {
 import Meta from "./meta";
 import Profile from "./profile";
 import ProfileMeta from "./profileMeta";
+import ProfileFollows from "./profileFollows";
 
 const IMAGE_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
@@ -706,8 +707,8 @@ class NostrEmbed extends Component {
             case "e": {
               return formatEventLink(getNoteId(ref[1]));
             }
-	    // not adding support for 'a' - too much code to format the naddr,
-	    // and this method is deprecated, so let's hope we won't need this
+            // not adding support for 'a' - too much code to format the naddr,
+            // and this method is deprecated, so let's hope we won't need this
             case "t": {
               return (
                 <a
@@ -737,21 +738,21 @@ class NostrEmbed extends Component {
           ) {
             return formatEventLink(matchNostr[1]);
           } else if (matchNostr[1].startsWith("npub1")) {
-	    const npub = matchNostr[1];
-	    const pubkey = parseNpub(matchNostr[1]);
-	    if (pubkey)
+            const npub = matchNostr[1];
+            const pubkey = parseNpub(matchNostr[1]);
+            if (pubkey)
               return formatProfileLink(npub, pubkey);
           } else if (matchNostr[1].startsWith("nprofile1")) {
-	    const {type, data} = parseNprofile(matchNostr[1]);
-	    if (data) {
-	      const npub = getNpub(data.pubkey);
+            const { type, data } = parseNprofile(matchNostr[1]);
+            if (data) {
+              const npub = getNpub(data.pubkey);
               return formatProfileLink(npub, data.pubkey);
-	    }
+            }
           }
 
           // unsupported or bad nostr: link
           return n;
-	}
+        }
 
         // finally, split by urls
         const urlRegex =
@@ -841,6 +842,7 @@ class NostrEmbed extends Component {
           )}
           {this.state.profile?.about || "Loading..."}
         </div>
+        <ProfileFollows />
         <ProfileMeta
           profile={this.state.profile}
           followersCount={this.state.followersCount}
@@ -882,7 +884,7 @@ class NostrEmbed extends Component {
               );
             })}
             {this.state.countTaggedProfiles > 0 &&
-            this.state.countTaggedProfiles >
+              this.state.countTaggedProfiles >
               Object.keys(this.state.taggedProfiles).length ? (
               <div class="diffProfiles">
                 And {this.getDiff()} more profiles.
@@ -902,8 +904,9 @@ class NostrEmbed extends Component {
     );
   }
 
+
   render() {
-    switch (this.state.kind) {
+    switch (0 && this.state.kind) {
       case 0:
         return this.renderProfile();
       case 1:
