@@ -25,7 +25,7 @@ class NostrEmbed extends Component {
     super(props);
 
     let id = props.id;
-    let kind = 1;
+    let kind = 0;
     if (props.id.startsWith("npub1")) {
       id = parseNpub(props.id);
       kind = 0;
@@ -48,6 +48,7 @@ class NostrEmbed extends Component {
       profile: {},
       profilesList: {},
       taggedProfiles: {},
+      follows: [],
       profilePkey: "",
       likesCount: 0,
       repostsCount: 0,
@@ -323,6 +324,7 @@ class NostrEmbed extends Component {
           this.setState({ profile: parsedProfile });
           if (this.state.kind == 0) {
             this.fetchProfileMeta({ socket, pubkey: profilePkey });
+            this.fetchFollows({ socket, pubkey: profilePkey })
           }
         } else {
           throw "Event not found";
@@ -339,6 +341,48 @@ class NostrEmbed extends Component {
           },
         });
       });
+  }
+
+  fetchFollows({ socket, pubkey }) {
+    const sub = {
+      kinds: [3],
+      authors: [pubkey]
+    }
+    let followedPubkeys = []
+    this.getEvent({ socket, sub })
+      .then(event => {
+        if (event) {
+          event?.tags.forEach(tag => {
+            if (tag[0] === "p") {
+              followedPubkeys.push(tag[1])
+            }
+          })
+          this.fetchFollowProfiles({ socket, pubkeys: followedPubkeys })
+        } else {
+          throw "Event not found";
+        }
+      }).catch(error => {
+        console.error(`Error fetching follows: ${error}`);
+      })
+  }
+
+  fetchFollowProfiles({ socket, pubkeys }) {
+    const sub = {
+      kinds: [0],
+      authors: pubkeys
+    }
+    const follows = []
+    this.listEvents({ socket, sub }).then(events => {
+      events.forEach(event => {
+        if (event) {
+          follows.push(JSON.parse(event.content))
+        }
+      })
+    }).catch(error => {
+      console.error(`Error fetching follow profiles: ${error}`);
+    }).finally(() => {
+      this.setState({ follows })
+    })
   }
 
   fetchProfilesList({ socket, data }) {
@@ -842,7 +886,9 @@ class NostrEmbed extends Component {
           )}
           {this.state.profile?.about || "Loading..."}
         </div>
-        <ProfileFollows />
+        {
+          Boolean(this.state.follows.length) && <ProfileFollows follows={this.state.follows} />
+        }
         <ProfileMeta
           profile={this.state.profile}
           followersCount={this.state.followersCount}
@@ -906,7 +952,7 @@ class NostrEmbed extends Component {
 
 
   render() {
-    switch (0 && this.state.kind) {
+    switch (this.state.kind) {
       case 0:
         return this.renderProfile();
       case 1:
