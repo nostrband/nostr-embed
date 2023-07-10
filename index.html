@@ -170,7 +170,6 @@
 	 })();
 	 </script> -->
 
-
   <script>
     !(function () {
       const n = document.createElement('script');
@@ -179,9 +178,10 @@
       n.src = 'nostr-embed.js';
       n.onload = function () {
         nostrEmbed.init(
-          'note1ygdj6hv3exmwcv4kk60x4j237kresu47x840stmh7ju7p04nzv0q9k2ucr',
+          'npub13vepw9xdhjzhp87lv5h7z2jgzteltmzqe4scjsn9dtwwncz6ekms5p489d',
           '#nostr-embed-6',
           '',
+          { showZaps: true, showFollowing: false }
         );
       };
       const a = document.getElementsByTagName('script')[0];

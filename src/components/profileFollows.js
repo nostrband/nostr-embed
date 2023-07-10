@@ -1,4 +1,5 @@
-const ProfileFollows = ({ follows = [] }) => {
+const ProfileFollows = ({ follows = [], options }) => {
+    if (!options?.showFollowing) return <></>
     return (
         <div>
             <hr />

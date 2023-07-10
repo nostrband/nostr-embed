@@ -887,7 +887,7 @@ class NostrEmbed extends Component {
           {this.state.profile?.about || "Loading..."}
         </div>
         {
-          Boolean(this.state.follows.length) && <ProfileFollows follows={this.state.follows} />
+          Boolean(this.state.follows.length) && <ProfileFollows follows={this.state.follows} options={this.props.options} />
         }
         <ProfileMeta
           profile={this.state.profile}
