@@ -1,8 +1,8 @@
 import { formatNpub, getNpub } from "../common";
-import CopyText from "./copyText";
-import KeyIcon from "./icons/keyIcon";
-import NostrichIcon from "./icons/nostrichIcon";
-import ProfileImage from "./profileImage.js";
+import CopyText from "./copyText.jsx";
+import KeyIcon from "./icons/keyIcon.jsx";
+import NostrichIcon from "./icons/nostrichIcon.jsx";
+import ProfileImage from "./profileImage.jsx";
 
 function Profile({ profilePkey, profile, options }) {
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;

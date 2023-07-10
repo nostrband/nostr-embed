@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import CopyIcon from './icons/copyIcon';
+import CopyIcon from './icons/copyIcon.jsx';
 import style from './style.css';
 
 function CopyText({ iconClasses, displayText, copyText }) {

@@ -1,8 +1,8 @@
 import { formatZapAmount, getNpub } from "../common";
-import CopyText from "./copyText";
-import BoltIcon from "./icons/boltIcon";
-import FollowersIcon from "./icons/followersIcon";
-import LinkIcon from "./icons/linkIcon";
+import CopyText from "./copyText.jsx";
+import BoltIcon from "./icons/boltIcon.jsx";
+import FollowersIcon from "./icons/followersIcon.jsx";
+import LinkIcon from "./icons/linkIcon.jsx";
 
 function ProfileMeta({ profile, followersCount, zapAmount, options }) {
   let npub, formattedZapAmount;
@@ -28,7 +28,7 @@ function ProfileMeta({ profile, followersCount, zapAmount, options }) {
         </div>
         <div class="interactionContainer">
           <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${npub}`}
-              class="linkLink">
+            class="linkLink">
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
             <span class="displayText">Open</span>
           </a>

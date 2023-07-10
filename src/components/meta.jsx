@@ -1,10 +1,10 @@
 import { formatZapAmount, getNoteId } from "../common";
-import CopyText from "./copyText";
-import BoltIcon from "./icons/boltIcon";
-import HeartIcon from "./icons/heartIcon";
-import LinkIcon from "./icons/linkIcon";
-import ReplyIcon from "./icons/replyIcon";
-import RepostIcon from "./icons/repostIcon";
+import CopyText from "./copyText.jsx";
+import BoltIcon from "./icons/boltIcon.jsx";
+import HeartIcon from "./icons/heartIcon.jsx";
+import LinkIcon from "./icons/linkIcon.jsx";
+import ReplyIcon from "./icons/replyIcon.jsx";
+import RepostIcon from "./icons/repostIcon.jsx";
 
 function Meta({
   note,
@@ -20,8 +20,8 @@ function Meta({
   let createdAt = note
     ? note.created_at
     : profilesList
-    ? profilesList.created_at
-    : null;
+      ? profilesList.created_at
+      : null;
   if (createdAt) {
     date = new Date(createdAt * 1000);
     formattedDate = date.toLocaleTimeString("en-US", {
