@@ -324,7 +324,7 @@ class NostrEmbed extends Component {
           this.setState({ profile: parsedProfile });
           if (this.state.kind == 0) {
             this.fetchProfileMeta({ socket, pubkey: profilePkey });
-            this.fetchFollows({ socket, pubkey: profilePkey })
+            if (this.props.options?.showFollowing) this.fetchFollows({ socket, pubkey: profilePkey })
           }
         } else {
           throw "Event not found";
@@ -371,17 +371,10 @@ class NostrEmbed extends Component {
       kinds: [0],
       authors: pubkeys
     }
-    const follows = []
     this.listEvents({ socket, sub }).then(events => {
-      events.forEach(event => {
-        if (event) {
-          follows.push(JSON.parse(event.content))
-        }
-      })
+      if (events) this.setState({ follows: events })
     }).catch(error => {
       console.error(`Error fetching follow profiles: ${error}`);
-    }).finally(() => {
-      this.setState({ follows })
     })
   }
 
