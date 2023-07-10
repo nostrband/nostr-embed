@@ -25,7 +25,7 @@ class NostrEmbed extends Component {
     super(props);
 
     let id = props.id;
-    let kind = 0;
+    let kind = 1;
     if (props.id.startsWith("npub1")) {
       id = parseNpub(props.id);
       kind = 0;
