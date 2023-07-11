@@ -15,10 +15,12 @@ const ProfileFollows = ({ follows = [], options }) => {
             npubLink: `https://nostr.band/${getNpub(follow?.pubkey)}`,
             display_name: content?.display_name,
             picture: content?.picture,
-            cachedImage: getCachedImage(follow?.pubkey)
+            cachedImage: getCachedImage(follow?.pubkey),
+            name: content?.name
         }
     })
 
+    const filterProfiles = parsedFollows.filter(profile => profile.name && profile.display_name)
 
     return (
         <div>
@@ -29,7 +31,7 @@ const ProfileFollows = ({ follows = [], options }) => {
                         parsedFollows.map(follow => {
                             return (
                                 <li key={follow?.id}>
-                                    <a rel="noopener noreferrer nofollow" target="_blank" href={follow.npubLink}>
+                                    <a className='ne-inline-block' rel="noopener noreferrer nofollow" target="_blank" href={follow.npubLink}>
                                         <ProfileImage
                                             fullImage={follow?.picture}
                                             thumbnail={follow?.cachedImage}
@@ -46,11 +48,11 @@ const ProfileFollows = ({ follows = [], options }) => {
                     </h2>
                     <div className="ne-m-0 ne-text-sm">
                         Including {" "}
-                        <a rel="noopener noreferrer nofollow" target="_blank" className='ne-text-black' href={parsedFollows[0]?.npubLink}>{parsedFollows[0]?.display_name}</a>
-                        {follows[1] ? ', ' : ''}
-                        <a rel="noopener noreferrer nofollow" target="_blank" className='ne-text-black' href={parsedFollows[1]?.npubLink}>{parsedFollows[1]?.display_name}</a>
-                        {follows[2] ? ' and ' : ''}
-                        <a rel="noopener noreferrer nofollow" target="_blank" className='ne-text-black' href={parsedFollows[2]?.npubLink}>{parsedFollows[2]?.display_name}</a>
+                        <a rel="noopener noreferrer nofollow" target="_blank" className='ne-text-black' href={filterProfiles[0]?.npubLink}>{filterProfiles[0]?.display_name}</a>
+                        {filterProfiles[1] ? ', ' : ''}
+                        <a rel="noopener noreferrer nofollow" target="_blank" className='ne-text-black' href={filterProfiles[1]?.npubLink}>{filterProfiles[1]?.display_name}</a>
+                        {filterProfiles[2] ? ' and ' : ''}
+                        <a rel="noopener noreferrer nofollow" target="_blank" className='ne-text-black' href={filterProfiles[2]?.npubLink}>{filterProfiles[2]?.display_name}</a>
 
                     </div>
                 </div>
