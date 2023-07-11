@@ -1,16 +1,25 @@
 import { getNpub } from "../common";
+import ProfileImage from "./profileImage";
 
 const ProfileFollows = ({ follows = [], options }) => {
     if (!options?.showFollowing) return <></>
+
+    const getCachedImage = (pubkey) => {
+        return `https://media.nostr.band/thumbs/${pubkey.slice(-4)}/${pubkey}-picture-64`
+    }
+
     const parsedFollows = follows.slice(0, 10).map(follow => {
         const content = JSON.parse(follow.content)
         return {
             id: follow?.id,
             npubLink: `https://nostr.band/${getNpub(follow?.pubkey)}`,
             display_name: content?.display_name,
-            picture: content?.picture
+            picture: content?.picture,
+            cachedImage: getCachedImage(follow?.pubkey)
         }
     })
+
+
     return (
         <div>
             <hr />
@@ -21,7 +30,10 @@ const ProfileFollows = ({ follows = [], options }) => {
                             return (
                                 <li key={follow?.id}>
                                     <a rel="noopener noreferrer nofollow" target="_blank" href={follow.npubLink}>
-                                        <img className='ne-rounded-full ne-ms-[-25px] ne-object-cover ne-w-[40px]' src={follow?.picture} alt='follows image' height="40" />
+                                        <ProfileImage
+                                            fullImage={follow?.picture}
+                                            thumbnail={follow?.cachedImage}
+                                            isProfileImage={false} />
                                     </a>
                                 </li>
                             )

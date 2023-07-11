@@ -31,6 +31,10 @@
   @apply ne-w-12 ne-h-12 ne-rounded-full;
 }
 
+.followedProdileImg {
+  @apply ne-w-[40px] ne-h-[40px] ne-rounded-full ne-ms-[-25px] ne-object-cover;
+}
+
 .profileDetails {
   @apply ne-flex ne-flex-col;
 }
