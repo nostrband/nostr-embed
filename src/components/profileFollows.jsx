@@ -1,5 +1,5 @@
-import { getNpub } from "../common";
-import ProfileImage from "./profileImage";
+import { getNpub } from "../utils/common";
+import ProfileImage from "./profileImage.jsx";
 
 const ProfileFollows = ({ follows = [], options }) => {
     if (!options?.showFollowing) return <></>

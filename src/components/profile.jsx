@@ -1,8 +1,8 @@
-import { formatNpub, getNpub } from "../common";
-import CopyText from "./copyText";
-import KeyIcon from "./icons/keyIcon";
-import NostrichIcon from "./icons/nostrichIcon";
-import ProfileImage from "./profileImage.js";
+import { formatNpub, getNpub } from "../utils/common";
+import CopyText from "./copyText.jsx";
+import KeyIcon from "./icons/keyIcon.jsx";
+import NostrichIcon from "./icons/nostrichIcon.jsx";
+import ProfileImage from "./profileImage.jsx";
 
 function Profile({ profilePkey, profile, options }) {
   let cachedProfilePicture, encodedProfilePkey, truncatedProfilePkey;
@@ -15,28 +15,28 @@ function Profile({ profilePkey, profile, options }) {
   }
 
   return (
-    <div class="cardProfile">
+    <div className="cardProfile">
       {cachedProfilePicture && profile.picture ? (
         <ProfileImage
           thumbnail={cachedProfilePicture}
           fullImage={profile.picture}
         />
       ) : (
-        <div class="profileWithoutImg" />
+        <div className="profileWithoutImg" />
       )}
-      <div class="profileDetails">
-        <div class="profileName">
+      <div className="profileDetails">
+        <div className="profileName">
           <a
             target="_blank"
             rel="noopener noreferrer nofollow"
             href={`https://nostr.band/${encodedProfilePkey}`}
           >
-            {profile.display_name || profile.name || "Loading..."}
+            {profile?.display_name || profile?.name || "Loading..."}
           </a>
         </div>
-        <div class="profilePkey">
+        <div className="profilePkey">
           <KeyIcon additionalClasses="w-4 h-4" />
-          <span class="pkey">{truncatedProfilePkey || "npub..."}</span>
+          <span className="pkey">{truncatedProfilePkey || "npub..."}</span>
           <CopyText iconClasses="w-4 h-4" copyText={encodedProfilePkey} />
         </div>
       </div>

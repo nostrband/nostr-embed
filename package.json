@@ -31,6 +31,7 @@
     "@babel/core": "^7.20.12",
     "@babel/plugin-transform-react-jsx": "^7.20.13",
     "@babel/preset-env": "^7.20.2",
+    "@babel/preset-react": "^7.22.5",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^9.1.2",
     "compression-webpack-plugin": "^10.0.0",

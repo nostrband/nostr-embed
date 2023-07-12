@@ -1,10 +1,10 @@
-import { formatZapAmount, getNoteId } from "../common";
-import CopyText from "./copyText";
-import BoltIcon from "./icons/boltIcon";
-import HeartIcon from "./icons/heartIcon";
-import LinkIcon from "./icons/linkIcon";
-import ReplyIcon from "./icons/replyIcon";
-import RepostIcon from "./icons/repostIcon";
+import { formatZapAmount, getNoteId } from "../utils/common";
+import CopyText from "./copyText.jsx";
+import BoltIcon from "./icons/boltIcon.jsx";
+import HeartIcon from "./icons/heartIcon.jsx";
+import LinkIcon from "./icons/linkIcon.jsx";
+import ReplyIcon from "./icons/replyIcon.jsx";
+import RepostIcon from "./icons/repostIcon.jsx";
 
 function Meta({
   note,
@@ -20,8 +20,8 @@ function Meta({
   let createdAt = note
     ? note.created_at
     : profilesList
-    ? profilesList.created_at
-    : null;
+      ? profilesList.created_at
+      : null;
   if (createdAt) {
     date = new Date(createdAt * 1000);
     formattedDate = date.toLocaleTimeString("en-US", {
@@ -44,29 +44,29 @@ function Meta({
   formattedZapAmount = formatZapAmount(zapAmount);
 
   return (
-    <div class="cardMeta">
-      <div class="cardDate">{formattedDate}</div>
+    <div className="cardMeta">
+      <div className="cardDate">{formattedDate}</div>
       <hr />
-      <div class="cardInteractions">
+      <div className="cardInteractions">
         {options && options.showZaps ? (
           <div className="interactionContainer" title="Total sats zapped">
             <BoltIcon additionalClasses="w-5 h-5" />
             <span className="zapAmount">{formattedZapAmount}</span>
           </div>
         ) : null}
-        <div class="interactionContainer" title="Number of replies">
+        <div className="interactionContainer" title="Number of replies">
           <ReplyIcon additionalClasses="w-5 h-5" />
-          <span class="repliesCount">{repliesCount}</span>
+          <span className="repliesCount">{repliesCount}</span>
         </div>
-        <div class="interactionContainer" title="Number of reposts">
+        <div className="interactionContainer" title="Number of reposts">
           <RepostIcon additionalClasses="w-5 h-5" />
-          <span class="repostsCount">{repostsCount}</span>
+          <span className="repostsCount">{repostsCount}</span>
         </div>
-        <div class="interactionContainer" title="Number of likes">
+        <div className="interactionContainer" title="Number of likes">
           <HeartIcon additionalClasses="w-5 h-5" />
-          <span class="likesCount">{likesCount}</span>
+          <span className="likesCount">{likesCount}</span>
         </div>
-        <div class="interactionContainer">
+        <div className="interactionContainer">
           <a
             target="_blank"
             rel="noopener noreferrer nofollow"
@@ -75,10 +75,10 @@ function Meta({
                 ? `https://nostr.band/${encodedId}`
                 : `https://listr.lol/a/${profilesList.naddr}`
             }
-            class="linkLink"
+            className="linkLink"
           >
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
-            <span class="displayText">Open</span>
+            <span className="displayText">Open</span>
           </a>
         </div>
         {options && options.showCopyAddr ? (
