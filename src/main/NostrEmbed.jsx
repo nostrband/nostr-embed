@@ -2,7 +2,7 @@ import * as secp from "@noble/secp256k1";
 import {decode} from "light-bolt11-decoder";
 import {Component} from "preact";
 import {parseNaddr, parseNoteId, parseNpub,} from "../utils/common";
-import ProfilesList from "./components/profilesList.jsx";
+import ProfilesList from "./components/ProfilesList.jsx";
 import Profile from "./components/Profile.jsx";
 import {KIND_CONTACT_LIST, KIND_META, KIND_NOTE, KIND_PROFILE_LIST, KIND_ZAP} from "../config/config";
 import Zap from "./components/Zap.jsx";

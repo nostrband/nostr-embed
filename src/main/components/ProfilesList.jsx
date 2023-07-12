@@ -60,13 +60,8 @@ export default function ProfilesList({state, props}) {
 
 function getDiff(state) {
   let diff;
-  if (
-    Object.keys(state?.taggedProfiles).length > 0 &&
-    state?.countTaggedProfiles
-  ) {
-    diff =
-      state?.countTaggedProfiles -
-      Object.keys(state?.taggedProfiles).length;
+  if (Object.keys(state?.taggedProfiles).length > 0 && state?.countTaggedProfiles) {
+    diff = state?.countTaggedProfiles - Object.keys(state?.taggedProfiles).length;
   }
   return diff;
 }
