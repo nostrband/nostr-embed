@@ -14,6 +14,7 @@ import {
 import Meta from "./meta";
 import Profile from "./profile";
 import ProfileMeta from "./profileMeta";
+import ProfileFollows from "./profileFollows";
 
 const IMAGE_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
@@ -47,6 +48,7 @@ class NostrEmbed extends Component {
       profile: {},
       profilesList: {},
       taggedProfiles: {},
+      follows: [],
       profilePkey: "",
       likesCount: 0,
       repostsCount: 0,
@@ -322,6 +324,7 @@ class NostrEmbed extends Component {
           this.setState({ profile: parsedProfile });
           if (this.state.kind == 0) {
             this.fetchProfileMeta({ socket, pubkey: profilePkey });
+            if (this.props.options?.showFollowing) this.fetchFollows({ socket, pubkey: profilePkey })
           }
         } else {
           throw "Event not found";
@@ -338,6 +341,41 @@ class NostrEmbed extends Component {
           },
         });
       });
+  }
+
+  fetchFollows({ socket, pubkey }) {
+    const sub = {
+      kinds: [3],
+      authors: [pubkey]
+    }
+    let followedPubkeys = []
+    this.getEvent({ socket, sub })
+      .then(event => {
+        if (event) {
+          event?.tags.forEach(tag => {
+            if (tag[0] === "p") {
+              followedPubkeys.push(tag[1])
+            }
+          })
+          this.fetchFollowProfiles({ socket, pubkeys: followedPubkeys })
+        } else {
+          throw "Event not found";
+        }
+      }).catch(error => {
+        console.error(`Error fetching follows: ${error}`);
+      })
+  }
+
+  fetchFollowProfiles({ socket, pubkeys }) {
+    const sub = {
+      kinds: [0],
+      authors: pubkeys
+    }
+    this.listEvents({ socket, sub }).then(events => {
+      if (events) this.setState({ follows: events })
+    }).catch(error => {
+      console.error(`Error fetching follow profiles: ${error}`);
+    })
   }
 
   fetchProfilesList({ socket, data }) {
@@ -706,8 +744,8 @@ class NostrEmbed extends Component {
             case "e": {
               return formatEventLink(getNoteId(ref[1]));
             }
-	    // not adding support for 'a' - too much code to format the naddr,
-	    // and this method is deprecated, so let's hope we won't need this
+            // not adding support for 'a' - too much code to format the naddr,
+            // and this method is deprecated, so let's hope we won't need this
             case "t": {
               return (
                 <a
@@ -737,21 +775,21 @@ class NostrEmbed extends Component {
           ) {
             return formatEventLink(matchNostr[1]);
           } else if (matchNostr[1].startsWith("npub1")) {
-	    const npub = matchNostr[1];
-	    const pubkey = parseNpub(matchNostr[1]);
-	    if (pubkey)
+            const npub = matchNostr[1];
+            const pubkey = parseNpub(matchNostr[1]);
+            if (pubkey)
               return formatProfileLink(npub, pubkey);
           } else if (matchNostr[1].startsWith("nprofile1")) {
-	    const {type, data} = parseNprofile(matchNostr[1]);
-	    if (data) {
-	      const npub = getNpub(data.pubkey);
+            const { type, data } = parseNprofile(matchNostr[1]);
+            if (data) {
+              const npub = getNpub(data.pubkey);
               return formatProfileLink(npub, data.pubkey);
-	    }
+            }
           }
 
           // unsupported or bad nostr: link
           return n;
-	}
+        }
 
         // finally, split by urls
         const urlRegex =
@@ -841,6 +879,9 @@ class NostrEmbed extends Component {
           )}
           {this.state.profile?.about || "Loading..."}
         </div>
+        {
+          Boolean(this.state.follows.length) && <ProfileFollows follows={this.state.follows} options={this.props.options} />
+        }
         <ProfileMeta
           profile={this.state.profile}
           followersCount={this.state.followersCount}
@@ -882,7 +923,7 @@ class NostrEmbed extends Component {
               );
             })}
             {this.state.countTaggedProfiles > 0 &&
-            this.state.countTaggedProfiles >
+              this.state.countTaggedProfiles >
               Object.keys(this.state.taggedProfiles).length ? (
               <div class="diffProfiles">
                 And {this.getDiff()} more profiles.
@@ -901,6 +942,7 @@ class NostrEmbed extends Component {
       </div>
     );
   }
+
 
   render() {
     switch (this.state.kind) {

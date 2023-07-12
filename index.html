@@ -2,23 +2,25 @@
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Development</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <script defer="defer" src="nostr-embed.js"></script>
-  </head>
-  <body>
-    <h1>Testing the Nostr Embed</h1>
 
-    <div id="nostr-embed-1"></div>
-    <div id="nostr-embed-2"></div>
-    <div id="nostr-embed-3"></div>
-    <div id="nostr-embed-4"></div>
-    <div id="nostr-embed-5"></div>
-    <div id="nostr-embed-6"></div>
+<head>
+  <meta charset="utf-8" />
+  <title>Development</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script defer="defer" src="nostr-embed.js"></script>
+</head>
 
-    <!-- <script>
+<body>
+  <h1>Testing the Nostr Embed</h1>
+
+  <div id="nostr-embed-1"></div>
+  <div id="nostr-embed-2"></div>
+  <div id="nostr-embed-3"></div>
+  <div id="nostr-embed-4"></div>
+  <div id="nostr-embed-5"></div>
+  <div id="nostr-embed-6"></div>
+
+  <!-- <script>
 	 !(function () {
          const n = document.createElement("script");
          n.type = "text/javascript";
@@ -42,7 +44,7 @@
 	 })();
 	 </script> -->
 
-    <!-- <script>
+  <!-- <script>
       !(function () {
         const n = document.createElement("script");
         n.type = "text/javascript";
@@ -66,7 +68,7 @@
       })();
     </script> -->
 
-    <!-- script>
+  <!-- script>
       !(function () {
         const n = document.createElement('script');
         n.type = 'text/javascript';
@@ -90,7 +92,7 @@
       })();
     </script -->
 
-    <!-- script>
+  <!-- script>
       !(function () {
         const n = document.createElement('script');
         n.type = 'text/javascript';
@@ -108,7 +110,7 @@
       })();
     </script-->
 
-    <!--script>
+  <!--script>
       !(function () {
         const n = document.createElement('script');
         n.type = 'text/javascript';
@@ -126,7 +128,7 @@
       })();
     </script-->
 
-    <!-- script>
+  <!-- script>
      !(function () {
        const n = document.createElement('script');
        n.type = 'text/javascript';
@@ -144,7 +146,7 @@
      })();
     </script -->
 
-    <!-- <script>
+  <!-- <script>
 	 !(function () {
          const n = document.createElement('script');
          n.type = 'text/javascript';
@@ -168,26 +170,27 @@
 	 })();
 	 </script> -->
 
+  <script>
+    !(function () {
+      const n = document.createElement('script');
+      n.type = 'text/javascript';
+      n.async = !0;
+      n.src = 'nostr-embed.js';
+      n.onload = function () {
+        nostrEmbed.init(
+          'npub13vepw9xdhjzhp87lv5h7z2jgzteltmzqe4scjsn9dtwwncz6ekms5p489d',
+          '#nostr-embed-6',
+          '',
+          { showZaps: true, showFollowing: true }
+        );
+      };
+      const a = document.getElementsByTagName('script')[0];
+      a.parentNode.insertBefore(n, a);
+    })();
+  </script>
 
-    <script>
-     !(function () {
-       const n = document.createElement('script');
-       n.type = 'text/javascript';
-       n.async = !0;
-       n.src = 'nostr-embed.js';
-       n.onload = function () {
-         nostrEmbed.init(
-           'note1ygdj6hv3exmwcv4kk60x4j237kresu47x840stmh7ju7p04nzv0q9k2ucr',
-           '#nostr-embed-6',
-           '',
-         );
-       };
-       const a = document.getElementsByTagName('script')[0];
-       a.parentNode.insertBefore(n, a);
-     })();
-    </script>
+</body>
 
-  </body>
 </html>
 
 <!-- jb55 note: 10c9fb11f742e6dc05d8bbcb4af790a4453f1bc046e40ca1b5385996c63d93ba -->
