@@ -94,15 +94,15 @@ class NostrEmbed extends Component {
     const start = (socket) => {
       switch (this.state.kind) {
         case KIND_META:
-          return this.fetchProfile({ socket, profilePkey: this.state.id });
+          return this.fetchProfile({socket, profilePkey: this.state.id});
         case KIND_NOTE:
-          return this.fetchEvent({ socket, noteId: this.state.id });
+          return this.fetchEvent({socket, noteId: this.state.id});
         case KIND_CONTACT_LIST:
-          return this.fetchNaddr({ socket, data: this.state.id.data });
+          return this.fetchNaddr({socket, data: this.state.id.data});
       }
     };
 
-    if (!window.__nostrEmbed) window.__nostrEmbed = { sockets: {} };
+    if (!window.__nostrEmbed) window.__nostrEmbed = {sockets: {}};
 
     let socket = null;
     if (this.state.relay in window.__nostrEmbed.sockets) {
@@ -124,13 +124,13 @@ class NostrEmbed extends Component {
     socket.starts = [start];
 
     socket.onopen = () => {
-      console.log(`Connected to Nostr relay: ${socket.url}`);
+      console.log(`Connected to Nostr relay: ${ socket.url }`);
       for (const s of socket.starts) s(socket);
       socket.starts = null;
     };
 
     socket.onerror = (ev) => {
-      console.log(`Failed to connect to Nostr relay: ${socket.url}}`);
+      console.log(`Failed to connect to Nostr relay: ${ socket.url }}`);
     };
 
     const subs = {};
@@ -163,7 +163,7 @@ class NostrEmbed extends Component {
       }
     };
 
-    socket.subscribe = ({ type, sub, ok, err }) => {
+    socket.subscribe = ({type, sub, ok, err}) => {
       let id = "embed-" + Math.random();
       const req = [type, id, sub];
       socket.send(JSON.stringify(req));
@@ -221,14 +221,14 @@ class NostrEmbed extends Component {
         done();
       };
 
-      subs[id] = { ok, err, on_event, on_count };
+      subs[id] = {ok, err, on_event, on_count};
     };
 
-    socket.listEvents = ({ sub, ok, err }) => {
-      socket.subscribe({ type: "REQ", sub, ok, err });
+    socket.listEvents = ({sub, ok, err}) => {
+      socket.subscribe({type: "REQ", sub, ok, err});
     };
 
-    socket.countEvents = ({ sub, ok, err }) => {
+    socket.countEvents = ({sub, ok, err}) => {
       socket.subscribe({
         type: "COUNT",
         sub,
@@ -240,7 +240,7 @@ class NostrEmbed extends Component {
     };
   }
 
-  getEvent({ socket, sub, ok, err }) {
+  getEvent({socket, sub, ok, err}) {
     return new Promise((ok, err) => {
       sub.limit = 1;
       socket.listEvents({
@@ -253,44 +253,44 @@ class NostrEmbed extends Component {
     });
   }
 
-  listEvents({ socket, sub }) {
+  listEvents({socket, sub}) {
     return new Promise((ok, err) => {
-      socket.listEvents({ sub, ok, err });
+      socket.listEvents({sub, ok, err});
     });
   }
 
-  countEvents({ socket, sub }) {
+  countEvents({socket, sub}) {
     return new Promise((ok, err) => {
-      socket.countEvents({ sub, ok, err });
+      socket.countEvents({sub, ok, err});
     });
   }
 
-  fetchEvent({ socket, noteId }) {
-    const sub = { ids: [noteId] };
-    this.getEvent({ socket, sub })
+  fetchEvent({socket, noteId}) {
+    const sub = {ids: [noteId]};
+    this.getEvent({socket, sub})
       .then((event) => {
         if (event) {
           this.setState({
             event,
-	    kind: event.kind,
+            kind: event.kind,
             profilePkey: event.pubkey,
           });
-          this.fetchProfile({ socket, profilePkey: event.pubkey });
-	  if (event.kind == KIND_NOTE) {
-            this.fetchMeta({ socket, noteId });
-            this.fetchTags({ socket, tags: event.tags });
-	  } else if (event.kind == KIND_ZAP) {
-	  }
+          this.fetchProfile({socket, profilePkey: event.pubkey});
+          if (event.kind == KIND_NOTE) {
+            this.fetchMeta({socket, noteId});
+            this.fetchTags({socket, tags: event.tags});
+          } else if (event.kind == KIND_ZAP) {
+          }
         } else {
           console.log("Error: We can't find that note on this relay");
           throw "Event not found";
         }
       })
       .catch((error) => {
-        console.log(`Error fetching note: ${error}`);
+        console.log(`Error fetching note: ${ error }`);
         this.setState({
           event: {
-	    id: noteId,
+            id: noteId,
             error: true,
             content:
               "Sorry, we weren't able to find and parse this note on the specified relay.",
@@ -299,24 +299,24 @@ class NostrEmbed extends Component {
       });
   }
 
-  fetchProfile({ socket, profilePkey }) {
-    const sub = { kinds: [KIND_META], authors: [profilePkey] };
-    this.getEvent({ socket, sub })
+  fetchProfile({socket, profilePkey}) {
+    const sub = {kinds: [KIND_META], authors: [profilePkey]};
+    this.getEvent({socket, sub})
       .then((event) => {
         if (event) {
           let parsedProfile = JSON.parse(event.content);
           parsedProfile.pubkey = profilePkey;
-          this.setState({ profilePkey, profile: parsedProfile });
+          this.setState({profilePkey, profile: parsedProfile});
           if (this.state.kind == KIND_META) {
-            this.fetchProfileMeta({ socket, pubkey: profilePkey });
-            if (this.props.options?.showFollowing) this.fetchFollows({ socket, pubkey: profilePkey })
+            this.fetchProfileMeta({socket, pubkey: profilePkey});
+            if (this.props.options?.showFollowing) this.fetchFollows({socket, pubkey: profilePkey})
           }
         } else {
           throw "Event not found";
         }
       })
       .catch((error) => {
-        console.log(`Error fetching profile: ${error}`);
+        console.log(`Error fetching profile: ${ error }`);
         this.setState({
           profile: {
             pubkey: profilePkey,
@@ -328,13 +328,13 @@ class NostrEmbed extends Component {
       });
   }
 
-  fetchFollows({ socket, pubkey }) {
+  fetchFollows({socket, pubkey}) {
     const sub = {
       kinds: [KIND_CONTACT_LIST],
       authors: [pubkey]
     }
     let followedPubkeys = []
-    this.getEvent({ socket, sub })
+    this.getEvent({socket, sub})
       .then(event => {
         if (event) {
           event?.tags.forEach(tag => {
@@ -342,53 +342,53 @@ class NostrEmbed extends Component {
               followedPubkeys.push(tag[1])
             }
           })
-          this.fetchFollowProfiles({ socket, pubkeys: followedPubkeys })
+          this.fetchFollowProfiles({socket, pubkeys: followedPubkeys})
         } else {
           throw "Event not found";
         }
       }).catch(error => {
-        console.error(`Error fetching follows: ${error}`);
-      })
+      console.error(`Error fetching follows: ${ error }`);
+    })
   }
 
-  fetchFollowProfiles({ socket, pubkeys }) {
+  fetchFollowProfiles({socket, pubkeys}) {
     const sub = {
       kinds: [KIND_META],
       authors: pubkeys
     }
-    this.listEvents({ socket, sub }).then(events => {
-      if (events) this.setState({ follows: events })
+    this.listEvents({socket, sub}).then(events => {
+      if (events) this.setState({follows: events})
     }).catch(error => {
-      console.error(`Error fetching follow profiles: ${error}`);
+      console.error(`Error fetching follow profiles: ${ error }`);
     })
   }
 
-  fetchNaddr({ socket, data }) {
+  fetchNaddr({socket, data}) {
     const sub = {
       kinds: [data.kind],
       "#d": [data.identifier],
       authors: [data.pubkey],
     };
-    this.getEvent({ socket, sub })
+    this.getEvent({socket, sub})
       .then((event) => {
         if (event) {
-	  this.setState({ event, kind: event.kind});
-          this.fetchProfile({ socket, profilePkey: event.pubkey });
-	  if (event.kind == KIND_CONTACT_LIST || event.kind == KIND_PROFILE_LIST) {
+          this.setState({event, kind: event.kind});
+          this.fetchProfile({socket, profilePkey: event.pubkey});
+          if (event.kind == KIND_CONTACT_LIST || event.kind == KIND_PROFILE_LIST) {
             const profilesListObj = this.getProfilesListObj(event.tags);
             profilesListObj.created_at = event.created_at;
-            profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`;
+            profilesListObj.id = `${ data.kind }:${ data.pubkey }:${ data.identifier }`;
             profilesListObj.naddr = this.props.id;
-            this.setState({ profilesList: profilesListObj });
-            this.fetchTags({ socket, tags: event.tags });
-            this.fetchMeta({ socket, data });
-	  }
+            this.setState({profilesList: profilesListObj});
+            this.fetchTags({socket, tags: event.tags});
+            this.fetchMeta({socket, data});
+          }
         } else {
           throw "Event not found";
         }
       })
       .catch((error) => {
-        console.log(`Error fetching event by naddr: ${error}`);
+        console.log(`Error fetching event by naddr: ${ error }`);
         this.setState({
           profilesList: {
             error: true,
@@ -399,8 +399,8 @@ class NostrEmbed extends Component {
       });
   }
 
-  fetchTags({ socket, tags }) {
-    const sub = { kinds: [KIND_META], authors: [] };
+  fetchTags({socket, tags}) {
+    const sub = {kinds: [KIND_META], authors: []};
     let count = 0;
 
     for (const t of tags) {
@@ -421,7 +421,7 @@ class NostrEmbed extends Component {
 
     if (!sub.authors.length) return;
 
-    this.listEvents({ socket, sub })
+    this.listEvents({socket, sub})
       .then((events) => {
         const taggedProfiles = {};
         for (const event of events) {
@@ -432,10 +432,10 @@ class NostrEmbed extends Component {
             console.log("Error bad event content", e, event.content);
           }
         }
-        this.setState({ taggedProfiles });
+        this.setState({taggedProfiles});
       })
       .catch((error) => {
-        console.log(`Error fetching tagged profiles: ${error}`);
+        console.log(`Error fetching tagged profiles: ${ error }`);
       });
   }
 
@@ -504,62 +504,62 @@ class NostrEmbed extends Component {
     }
   }
 
-  fetchMeta({ socket, noteId, data }) {
+  fetchMeta({socket, noteId, data}) {
     if (socket.url.includes("wss://relay.nostr.band"))
-      return this.fetchMetaCount({ socket, noteId, data });
-    else return this.fetchMetaList({ socket, noteId, data });
+      return this.fetchMetaCount({socket, noteId, data});
+    else return this.fetchMetaList({socket, noteId, data});
   }
 
-  fetchMetaCount({ socket, noteId, data }) {
+  fetchMetaCount({socket, noteId, data}) {
     const getSub = (kind) => {
       if (noteId) {
-        return { kinds: [kind], "#e": [noteId] };
+        return {kinds: [kind], "#e": [noteId]};
       }
 
       if (data) {
         return {
           kinds: [kind],
-          "#a": [`${data.kind}:${data.pubkey}:${data.identifier}`],
+          "#a": [`${ data.kind }:${ data.pubkey }:${ data.identifier }`],
         };
       }
     };
 
-    this.countEvents({ socket, sub: getSub(KIND_NOTE) }).then((c) => {
+    this.countEvents({socket, sub: getSub(KIND_NOTE)}).then((c) => {
       this.setState((state) => ({
         repliesCount: c ? c.count : 0,
       }));
     });
-    this.countEvents({ socket, sub: getSub(KIND_REPOST) }).then((c) => {
+    this.countEvents({socket, sub: getSub(KIND_REPOST)}).then((c) => {
       this.setState((state) => ({
         repostsCount: c ? c.count : 0,
       }));
     });
-    this.countEvents({ socket, sub: getSub(KIND_REACTION) }).then((c) => {
+    this.countEvents({socket, sub: getSub(KIND_REACTION)}).then((c) => {
       this.setState((state) => ({
         likesCount: c ? c.count : 0,
       }));
     });
-    this.listEvents({ socket, sub: getSub(KIND_ZAP) }).then((events) => {
+    this.listEvents({socket, sub: getSub(KIND_ZAP)}).then((events) => {
       this.onListMetaEvents(events);
     });
   }
 
-  fetchMetaList({ socket, noteId, data }) {
-    const sub = this.getSubOnFetchMetaList({ noteId, data });
+  fetchMetaList({socket, noteId, data}) {
+    const sub = this.getSubOnFetchMetaList({noteId, data});
 
-    this.listEvents({ socket, sub }).then((events) => {
+    this.listEvents({socket, sub}).then((events) => {
       this.onListMetaEvents(events);
     });
   }
 
-  getSubOnFetchMetaList({ noteId, data }) {
+  getSubOnFetchMetaList({noteId, data}) {
     if (noteId) {
-      return { kinds: [KIND_NOTE, KIND_REPOST, KIND_REACTION, KIND_ZAP], "#e": [noteId] };
+      return {kinds: [KIND_NOTE, KIND_REPOST, KIND_REACTION, KIND_ZAP], "#e": [noteId]};
     }
     if (data) {
       return {
         kinds: [KIND_NOTE, KIND_REPOST, KIND_REACTION, KIND_ZAP],
-        "#a": [`${data.kind}:${data.pubkey}:${data.identifier}`],
+        "#a": [`${ data.kind }:${ data.pubkey }:${ data.identifier }`],
       };
     }
   }
@@ -583,56 +583,48 @@ class NostrEmbed extends Component {
     }
   }
 
-  fetchProfileMetaCount({ socket, pubkey }) {
+  fetchProfileMetaCount({socket, pubkey}) {
     const getSub = (kind) => {
-      return { kinds: [kind], "#p": [pubkey] };
+      return {kinds: [kind], "#p": [pubkey]};
     };
-    this.countEvents({ socket, sub: getSub(KIND_CONTACT_LIST) }).then((c) => {
+    this.countEvents({socket, sub: getSub(KIND_CONTACT_LIST)}).then((c) => {
       this.setState((state) => ({
         followersCount: c ? c.count : 0,
       }));
     });
-    this.listEvents({ socket, sub: getSub(KIND_ZAP) }).then((events) => {
+    this.listEvents({socket, sub: getSub(KIND_ZAP)}).then((events) => {
       this.onListProfileMetaEvents(events);
     });
   }
 
-  fetchProfileMetaList({ socket, pubkey }) {
-    const sub = { kinds: [KIND_CONTACT_LIST, KIND_ZAP], "#p": [pubkey] };
-    this.listEvents({ socket, sub }).then((events) => {
+  fetchProfileMetaList({socket, pubkey}) {
+    const sub = {kinds: [KIND_CONTACT_LIST, KIND_ZAP], "#p": [pubkey]};
+    this.listEvents({socket, sub}).then((events) => {
       this.onListProfileMetaEvents(events);
     });
   }
 
-  fetchProfileMeta({ socket, pubkey }) {
+  fetchProfileMeta({socket, pubkey}) {
     if (socket.url.includes("wss://relay.nostr.band"))
-      return this.fetchProfileMetaCount({ socket, pubkey });
-    else return this.fetchProfileMetaList({ socket, pubkey });
+      return this.fetchProfileMetaCount({socket, pubkey});
+    else return this.fetchProfileMetaList({socket, pubkey});
   }
-    getDiff() {
-    let diff;
-    if (
-      Object.keys(this.state.taggedProfiles).length > 0 &&
-      this.state.countTaggedProfiles
-    ) {
-      diff =
-        this.state.countTaggedProfiles -
-        Object.keys(this.state.taggedProfiles).length;
-    }
-    return diff;
-  }
+
 
   render() {
     switch (this.state.kind) {
       case KIND_META:
-        return <Profile  props={this.props} state={this.state}/>
+        return <Profile props={ this.props }
+                        state={ this.state }/>
       case KIND_CONTACT_LIST:
       case KIND_PROFILE_LIST:
-        return <ProfilesList props={this.props} state={this.state}/>
+        return <ProfilesList props={ this.props }
+                             state={ this.state }/>
       case KIND_ZAP:
-        return <Zap state={this.state}/>
+        return <Zap state={ this.state }/>
       default:
-        return <Note props={this.props} state={this.state}/>
+        return <Note props={ this.props }
+                     state={ this.state }/>
     }
   }
 }

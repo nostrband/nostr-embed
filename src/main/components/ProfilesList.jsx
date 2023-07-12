@@ -36,7 +36,7 @@ export default function ProfilesList({state, props}) {
           state?.countTaggedProfiles >
           Object.keys(state?.taggedProfiles).length ? (
             <div className="diffProfiles">
-              And { this.getDiff() } more profiles.
+              And { getDiff(state) } more profiles.
             </div>
           ) : null }
         </div>
@@ -56,4 +56,17 @@ export default function ProfilesList({state, props}) {
       />
     </div>
   )
+}
+
+function getDiff(state) {
+  let diff;
+  if (
+    Object.keys(state?.taggedProfiles).length > 0 &&
+    state?.countTaggedProfiles
+  ) {
+    diff =
+      state?.countTaggedProfiles -
+      Object.keys(state?.taggedProfiles).length;
+  }
+  return diff;
 }
