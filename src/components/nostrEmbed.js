@@ -20,33 +20,37 @@ const IMAGE_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
 const YOUTUBE_KEY_WORDS = ["youtube"];
 
+const KIND_META = 0;
+const KIND_NOTE = 1;
+const KIND_CONTACT_LIST = 3;
+const KIND_REPOST = 6;
+const KIND_REACTION = 7;
+const KIND_ZAP = 9735;
+const KIND_PROFILE_LIST = 30000;
+
 class NostrEmbed extends Component {
   constructor(props) {
     super(props);
 
-    let id = props.id;
-    let kind = 1;
+    let id = props.id; // hex event id by default
+    let kind = KIND_NOTE; // default for fetchEvent
     if (props.id.startsWith("npub1")) {
       id = parseNpub(props.id);
-      kind = 0;
+      kind = KIND_META; // fetchProfile
     } else if (props.id.startsWith("note1")) {
       id = parseNoteId(props.id);
     } else if (props.id.startsWith("naddr")) {
       id = parseNaddr(props.id);
-      if (id.data.identifier) {
-        kind = 2;
-      } else {
-        kind = 3;
-      }
+      kind = KIND_CONTACT_LIST; // default for fetchNaddr
     }
 
     this.state = {
       id,
       kind,
       relay: props.relay,
-      note: {},
-      profile: {},
-      profilesList: {},
+      event: {}, // raw source event
+      profile: {}, // author of the current event
+      profilesList: {}, // 3, 30000 etc
       taggedProfiles: {},
       follows: [],
       profilePkey: "",
@@ -111,14 +115,12 @@ class NostrEmbed extends Component {
   componentDidMount() {
     const start = (socket) => {
       switch (this.state.kind) {
-        case 0:
+        case KIND_META:
           return this.fetchProfile({ socket, profilePkey: this.state.id });
-        case 1:
-          return this.fetchNote({ socket, noteId: this.state.id });
-        case 2:
-          return this.fetchProfilesList({ socket, data: this.state.id.data });
-        case 3:
-          return this.fetchProfilesList({ socket, data: this.state.id.data });
+        case KIND_NOTE:
+          return this.fetchEvent({ socket, noteId: this.state.id });
+        case KIND_CONTACT_LIST:
+          return this.fetchNaddr({ socket, data: this.state.id.data });
       }
     };
 
@@ -285,18 +287,22 @@ class NostrEmbed extends Component {
     });
   }
 
-  fetchNote({ socket, noteId }) {
-    const sub = { ids: [noteId], kinds: [1] };
+  fetchEvent({ socket, noteId }) {
+    const sub = { ids: [noteId] };
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
           this.setState({
-            note: event,
+            event,
+	    kind: event.kind,
             profilePkey: event.pubkey,
           });
           this.fetchProfile({ socket, profilePkey: event.pubkey });
-          this.fetchMeta({ socket, noteId });
-          this.fetchTags({ socket, tags: event.tags });
+	  if (event.kind == KIND_NOTE) {
+            this.fetchMeta({ socket, noteId });
+            this.fetchTags({ socket, tags: event.tags });
+	  } else if (event.kind == KIND_ZAP) {
+	  }
         } else {
           console.log("Error: We can't find that note on this relay");
           throw "Event not found";
@@ -305,7 +311,8 @@ class NostrEmbed extends Component {
       .catch((error) => {
         console.log(`Error fetching note: ${error}`);
         this.setState({
-          note: {
+          event: {
+	    id: noteId,
             error: true,
             content:
               "Sorry, we weren't able to find and parse this note on the specified relay.",
@@ -315,14 +322,14 @@ class NostrEmbed extends Component {
   }
 
   fetchProfile({ socket, profilePkey }) {
-    const sub = { kinds: [0], authors: [profilePkey] };
+    const sub = { kinds: [KIND_META], authors: [profilePkey] };
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
           let parsedProfile = JSON.parse(event.content);
           parsedProfile.pubkey = profilePkey;
-          this.setState({ profile: parsedProfile });
-          if (this.state.kind == 0) {
+          this.setState({ profilePkey, profile: parsedProfile });
+          if (this.state.kind == KIND_META) {
             this.fetchProfileMeta({ socket, pubkey: profilePkey });
             if (this.props.options?.showFollowing) this.fetchFollows({ socket, pubkey: profilePkey })
           }
@@ -345,7 +352,7 @@ class NostrEmbed extends Component {
 
   fetchFollows({ socket, pubkey }) {
     const sub = {
-      kinds: [3],
+      kinds: [KIND_CONTACT_LIST],
       authors: [pubkey]
     }
     let followedPubkeys = []
@@ -368,7 +375,7 @@ class NostrEmbed extends Component {
 
   fetchFollowProfiles({ socket, pubkeys }) {
     const sub = {
-      kinds: [0],
+      kinds: [KIND_META],
       authors: pubkeys
     }
     this.listEvents({ socket, sub }).then(events => {
@@ -378,7 +385,7 @@ class NostrEmbed extends Component {
     })
   }
 
-  fetchProfilesList({ socket, data }) {
+  fetchNaddr({ socket, data }) {
     const sub = {
       kinds: [data.kind],
       "#d": [data.identifier],
@@ -387,32 +394,35 @@ class NostrEmbed extends Component {
     this.getEvent({ socket, sub })
       .then((event) => {
         if (event) {
-          let profilesListObj = this.getProfilesListObj(event.tags);
-          profilesListObj.created_at = event.created_at;
-          profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`;
-          profilesListObj.naddr = this.props.id;
-          this.setState({ profilesList: profilesListObj });
+	  this.setState({ event, kind: event.kind});
           this.fetchProfile({ socket, profilePkey: event.pubkey });
-          this.fetchTags({ socket, tags: event.tags });
-          this.fetchMeta({ socket, data });
+	  if (event.kind == KIND_CONTACT_LIST || event.kind == KIND_PROFILE_LIST) {
+            const profilesListObj = this.getProfilesListObj(event.tags);
+            profilesListObj.created_at = event.created_at;
+            profilesListObj.id = `${data.kind}:${data.pubkey}:${data.identifier}`;
+            profilesListObj.naddr = this.props.id;
+            this.setState({ profilesList: profilesListObj });
+            this.fetchTags({ socket, tags: event.tags });
+            this.fetchMeta({ socket, data });
+	  }
         } else {
           throw "Event not found";
         }
       })
       .catch((error) => {
-        console.log(`Error fetching profileList: ${error}`);
+        console.log(`Error fetching event by naddr: ${error}`);
         this.setState({
           profilesList: {
             error: true,
             content:
-              "Sorry, we weren't able to find this profile on the specified relay.",
+              "Sorry, we weren't able to find this event on the specified relay.",
           },
         });
       });
   }
 
   fetchTags({ socket, tags }) {
-    const sub = { kinds: [0], authors: [] };
+    const sub = { kinds: [KIND_META], authors: [] };
     let count = 0;
 
     for (const t of tags) {
@@ -490,22 +500,22 @@ class NostrEmbed extends Component {
   onListMetaEvents(events) {
     for (let noteEvent of events) {
       switch (noteEvent["kind"]) {
-        case 6:
+        case KIND_REPOST:
           this.setState((state) => ({
             repostsCount: state.repostsCount + 1,
           }));
           break;
-        case 7:
+        case KIND_REACTION:
           this.setState((state) => ({
             likesCount: state.likesCount + 1,
           }));
           break;
-        case 1:
+        case KIND_NOTE:
           this.setState((state) => ({
             repliesCount: state.repliesCount + 1,
           }));
           break;
-        case 9735:
+        case KIND_ZAP:
           this.setState((state) => ({
             zapAmount: state.zapAmount + this.getZapAmount(noteEvent),
           }));
@@ -536,22 +546,22 @@ class NostrEmbed extends Component {
       }
     };
 
-    this.countEvents({ socket, sub: getSub(1) }).then((c) => {
+    this.countEvents({ socket, sub: getSub(KIND_NOTE) }).then((c) => {
       this.setState((state) => ({
         repliesCount: c ? c.count : 0,
       }));
     });
-    this.countEvents({ socket, sub: getSub(6) }).then((c) => {
+    this.countEvents({ socket, sub: getSub(KIND_REPOST) }).then((c) => {
       this.setState((state) => ({
         repostsCount: c ? c.count : 0,
       }));
     });
-    this.countEvents({ socket, sub: getSub(7) }).then((c) => {
+    this.countEvents({ socket, sub: getSub(KIND_REACTION) }).then((c) => {
       this.setState((state) => ({
         likesCount: c ? c.count : 0,
       }));
     });
-    this.listEvents({ socket, sub: getSub(9735) }).then((events) => {
+    this.listEvents({ socket, sub: getSub(KIND_ZAP) }).then((events) => {
       this.onListMetaEvents(events);
     });
   }
@@ -566,11 +576,11 @@ class NostrEmbed extends Component {
 
   getSubOnFetchMetaList({ noteId, data }) {
     if (noteId) {
-      return { kinds: [1, 6, 7, 9735], "#e": [noteId] };
+      return { kinds: [KIND_NOTE, KIND_REPOST, KIND_REACTION, KIND_ZAP], "#e": [noteId] };
     }
     if (data) {
       return {
-        kinds: [1, 6, 7, 9735],
+        kinds: [KIND_NOTE, KIND_REPOST, KIND_REACTION, KIND_ZAP],
         "#a": [`${data.kind}:${data.pubkey}:${data.identifier}`],
       };
     }
@@ -579,12 +589,12 @@ class NostrEmbed extends Component {
   onListProfileMetaEvents(events) {
     for (let e of events) {
       switch (e["kind"]) {
-        case 3:
+        case KIND_CONTACT_LIST:
           this.setState((state) => ({
             followersCount: state.followersCount + 1,
           }));
           break;
-        case 9735:
+        case KIND_ZAP:
           this.setState((state) => ({
             zapAmount: state.zapAmount + this.getZapAmount(e),
           }));
@@ -599,18 +609,18 @@ class NostrEmbed extends Component {
     const getSub = (kind) => {
       return { kinds: [kind], "#p": [pubkey] };
     };
-    this.countEvents({ socket, sub: getSub(3) }).then((c) => {
+    this.countEvents({ socket, sub: getSub(KIND_CONTACT_LIST) }).then((c) => {
       this.setState((state) => ({
         followersCount: c ? c.count : 0,
       }));
     });
-    this.listEvents({ socket, sub: getSub(9735) }).then((events) => {
+    this.listEvents({ socket, sub: getSub(KIND_ZAP) }).then((events) => {
       this.onListProfileMetaEvents(events);
     });
   }
 
   fetchProfileMetaList({ socket, pubkey }) {
-    const sub = { kinds: [3, 9735], "#p": [pubkey] };
+    const sub = { kinds: [KIND_CONTACT_LIST, KIND_ZAP], "#p": [pubkey] };
     this.listEvents({ socket, sub }).then((events) => {
       this.onListProfileMetaEvents(events);
     });
@@ -694,7 +704,7 @@ class NostrEmbed extends Component {
   }
 
   formatContent() {
-    if (!this.state.note.content) return "";
+    if (!this.state.event.content) return "";
 
     const formatEventLink = (noteOrNaddr) => {
       const label = formatNoteId(noteOrNaddr);
@@ -726,7 +736,7 @@ class NostrEmbed extends Component {
       );
     };
 
-    const note = this.state.note;
+    const note = this.state.event;
 
     const MentionRegex = /(#\[\d+\])/gi;
 
@@ -829,7 +839,7 @@ class NostrEmbed extends Component {
         />
         <div
           class={
-            this.state.note.error
+            this.state.event.error
               ? "cardContent ne-text-red-800"
               : "cardContent"
           }
@@ -837,7 +847,7 @@ class NostrEmbed extends Component {
           {this.formatContent()}
         </div>
         <Meta
-          note={this.state.note}
+          note={this.state.event}
           likesCount={this.state.likesCount}
           repliesCount={this.state.repliesCount}
           repostsCount={this.state.repostsCount}
@@ -895,41 +905,46 @@ class NostrEmbed extends Component {
   renderProfilesList() {
     return (
       <div class="nostrEmbedCard">
-        <Profile
-          profilePkey={this.state.id.data.pubkey}
-          profile={this.state.profile}
-          options={this.props.options}
-        />
-        <div>
-          <h3 class="cardTitle">
-            {this.state.kind === 2 && this.state.profilesList.name
-              ? this.state.profilesList.name
-              : this.state.profilesList.d}
-            {this.state.kind === 3 && "Following "}(
+	<Profile
+	  profilePkey={this.state.id.data.pubkey}
+	  profile={this.state.profile}
+	  options={this.props.options}
+	/>
+	<div>
+	  <h3 class="cardTitle">
+	    {this.state.kind !== KIND_CONTACT_LIST && this.state.profilesList.name
+	    ? this.state.profilesList.name
+	    : this.state.profilesList.d}
+	    {this.state.kind === KIND_CONTACT_LIST && "Following "}(
             {this.state.taggedProfiles ? this.state.countTaggedProfiles : 0})
-          </h3>
-          {this.state.kind === 2 && (
+	  </h3>
+	  {this.state.kind !== KIND_CONTACT_LIST && (
             <p class="cardDescription">{this.state.profilesList.description}</p>
-          )}
-          <div class="cardList">
-            {Object.keys(this.state.taggedProfiles).map((profilePkey) => {
+	  )}
+	  <div class="cardList">
+	    {Object.keys(this.state.taggedProfiles).map((profilePkey) => {
               return (
-                <div key={profilePkey + "taggedProfile"}>
-                  <Profile
-                    profilePkey={profilePkey}
-                    profile={this.state.taggedProfiles[profilePkey]}
-                  />
-                </div>
+		<div key={profilePkey + "taggedProfile"}>
+		  <Profile
+		    profilePkey={profilePkey}
+		    profile={this.state.taggedProfiles[profilePkey]}
+		  />
+		</div>
               );
-            })}
-            {this.state.countTaggedProfiles > 0 &&
-              this.state.countTaggedProfiles >
-              Object.keys(this.state.taggedProfiles).length ? (
+	    })}
+	    {this.state.countTaggedProfiles > 0 &&
+	     this.state.countTaggedProfiles >
+            Object.keys(this.state.taggedProfiles).length ? (
               <div class="diffProfiles">
-                And {this.getDiff()} more profiles.
+		And {this.getDiff()} more profiles.
               </div>
             ) : null}
-          </div>
+	  </div>
+	  {this.state.profilesList.error && (
+	    <div class="cardContent ne-text-red-800">
+	      {this.state.profilesList.content}
+	    </div>
+	  )}
         </div>
         <Meta
           profilesList={this.state.profilesList}
@@ -943,17 +958,25 @@ class NostrEmbed extends Component {
     );
   }
 
+  renderZap() {
+    return (
+      <div class="nostrEmbedCard">
+	Zap content: {JSON.stringify(this.state.event)}
+      </div>
+    )
+  }
 
   render() {
     switch (this.state.kind) {
-      case 0:
+      case KIND_META:
         return this.renderProfile();
-      case 1:
+      case KIND_CONTACT_LIST:
+      case KIND_PROFILE_LIST:
+        return this.renderProfilesList();
+      case KIND_ZAP:
+        return this.renderZap();
+      default:
         return this.renderNote();
-      case 2:
-        return this.renderProfilesList();
-      case 3:
-        return this.renderProfilesList();
     }
   }
 }
