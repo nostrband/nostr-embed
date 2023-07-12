@@ -1,32 +1,12 @@
 import * as secp from "@noble/secp256k1";
-import { decode } from "light-bolt11-decoder";
-import { Component } from "preact";
-import {
-  formatNoteId,
-  formatNpub,
-  getNoteId,
-  getNpub,
-  parseNaddr,
-  parseNoteId,
-  parseNpub,
-  parseNprofile,
-} from "../common";
-import Meta from "./meta.jsx";
-import Profile from "./profile.jsx";
-import ProfileMeta from "./profileMeta.jsx";
-import ProfileFollows from "./profileFollows.jsx";
-
-const IMAGE_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-const VIDEO_FILE_EXTENSIONS = [".mov", ".mp4"];
-const YOUTUBE_KEY_WORDS = ["youtube"];
-
-const KIND_META = 0;
-const KIND_NOTE = 1;
-const KIND_CONTACT_LIST = 3;
-const KIND_REPOST = 6;
-const KIND_REACTION = 7;
-const KIND_ZAP = 9735;
-const KIND_PROFILE_LIST = 30000;
+import {decode} from "light-bolt11-decoder";
+import {Component} from "preact";
+import {parseNaddr, parseNoteId, parseNpub,} from "../utils/common";
+import ProfilesList from "./components/profilesList.jsx";
+import Profile from "./components/Profile.jsx";
+import {KIND_CONTACT_LIST, KIND_META, KIND_NOTE, KIND_PROFILE_LIST, KIND_ZAP} from "../config/config";
+import Zap from "./components/Zap.jsx";
+import Note from "./components/Note.jsx";
 
 class NostrEmbed extends Component {
   constructor(props) {
@@ -67,18 +47,16 @@ class NostrEmbed extends Component {
     const utf8 = new TextEncoder().encode(string);
     return secp.utils.sha256(utf8).then((hashBuffer) => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray
+      return hashArray
         .map((bytes) => bytes.toString(16).padStart(2, "0"))
         .join("");
-      return hashHex;
     });
   }
 
   async getNostrEventID(m) {
     const a = [0, m.pubkey, m.created_at, m.kind, m.tags, m.content];
     const s = JSON.stringify(a);
-    const h = await this.sha256(s);
-    return h;
+    return await this.sha256(s);
   }
 
   verifyNostrSignature(event) {
@@ -631,192 +609,7 @@ class NostrEmbed extends Component {
       return this.fetchProfileMetaCount({ socket, pubkey });
     else return this.fetchProfileMetaList({ socket, pubkey });
   }
-
-  formatLink(a) {
-    if (this.isVideo(a)) {
-      return (
-        <div class="cardContentMedia">
-          <video src={a} controls></video>
-        </div>
-      );
-    } else if (this.isImage(a)) {
-      return (
-        <div className="cardContentMedia">
-          <img className="cardContentImage" src={a} alt=""></img>
-        </div>
-      );
-    } else if (this.isYoutube(a)) {
-      if (a.includes("/watch")) {
-        a = a.replace("/watch", "/embed");
-        a = a.replace("?v=", "/");
-      }
-      return (
-        <div className="cardContentMedia">
-          <iframe src={a}></iframe>
-        </div>
-      );
-    } else {
-      return (
-        <a target="_blank" rel="noopener noreferrer nofollow" href={a}>
-          {a}
-        </a>
-      );
-    }
-  }
-
-  changeLinkRegister(a) {
-    return a.toLowerCase();
-  }
-
-  splitLink(link, elementNumber) {
-    const linkArray = link.split("?");
-    if (linkArray.length > elementNumber) {
-      return linkArray[elementNumber];
-    }
-    return link;
-  }
-
-  isAnyEndWith(link, extensions) {
-    return extensions.some(function (extension) {
-      return link.endsWith(extension);
-    });
-  }
-
-  isAnyContains(link, keyWords) {
-    return keyWords.some(function (keyWord) {
-      return link.includes(keyWord);
-    });
-  }
-
-  isImage(a) {
-    const link = this.splitLink(this.changeLinkRegister(a), 0);
-    return this.isAnyEndWith(link, IMAGE_FILE_EXTENSIONS);
-  }
-
-  isVideo(a) {
-    const link = this.splitLink(this.changeLinkRegister(a), 0);
-    return this.isAnyEndWith(link, VIDEO_FILE_EXTENSIONS);
-  }
-
-  isYoutube(a) {
-    const link = this.splitLink(this.changeLinkRegister(a), 0);
-    return this.isAnyContains(link, YOUTUBE_KEY_WORDS);
-  }
-
-  formatContent() {
-    if (!this.state.event.content) return "";
-
-    const formatEventLink = (noteOrNaddr) => {
-      const label = formatNoteId(noteOrNaddr);
-      return (
-        <a
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          href={`https://nostr.band/${noteOrNaddr}`}
-        >
-          {label}
-        </a>
-      );
-    };
-
-    const formatProfileLink = (npub, pubkey) => {
-      let label = formatNpub(npub);
-      if (pubkey in this.state.taggedProfiles) {
-        const tp = this.state.taggedProfiles[pubkey];
-        label = tp?.name || tp?.display_name || label;
-      }
-      return (
-        <a
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          href={`https://nostr.band/${npub}`}
-        >
-          @{label}
-        </a>
-      );
-    };
-
-    const note = this.state.event;
-
-    const MentionRegex = /(#\[\d+\])/gi;
-
-    // first - split by #[d] mentions
-    const fragments = note.content.split(MentionRegex).map((match) => {
-      const matchTag = match.match(/#\[(\d+)\]/);
-      if (matchTag && matchTag.length === 2) {
-        const idx = parseInt(matchTag[1]);
-        if (idx < note.tags.length && note.tags[idx].length >= 2) {
-          const ref = note.tags[idx];
-          switch (ref[0]) {
-            case "p": {
-              return formatProfileLink(getNpub(ref[1]), ref[1]);
-            }
-            case "e": {
-              return formatEventLink(getNoteId(ref[1]));
-            }
-            // not adding support for 'a' - too much code to format the naddr,
-            // and this method is deprecated, so let's hope we won't need this
-            case "t": {
-              return (
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  href={`https://nostr.band/?q=%23${ref[1]}`}
-                >
-                  #{ref[1]}
-                </a>
-              );
-            }
-          }
-        }
-
-        // unsupported #[d] ref
-        return match;
-      }
-
-      // now try splitting by nostr: links
-      return match.split(/(nostr:[a-z0-9]+)/gi).map((n) => {
-        const matchNostr = n.match(/nostr:([a-z0-9]+)/);
-        if (matchNostr && matchNostr.length === 2) {
-          if (
-            matchNostr[1].startsWith("note1") ||
-            matchNostr[1].startsWith("nevent1") ||
-            matchNostr[1].startsWith("naddr1")
-          ) {
-            return formatEventLink(matchNostr[1]);
-          } else if (matchNostr[1].startsWith("npub1")) {
-            const npub = matchNostr[1];
-            const pubkey = parseNpub(matchNostr[1]);
-            if (pubkey)
-              return formatProfileLink(npub, pubkey);
-          } else if (matchNostr[1].startsWith("nprofile1")) {
-            const { type, data } = parseNprofile(matchNostr[1]);
-            if (data) {
-              const npub = getNpub(data.pubkey);
-              return formatProfileLink(npub, data.pubkey);
-            }
-          }
-
-          // unsupported or bad nostr: link
-          return n;
-        }
-
-        // finally, split by urls
-        const urlRegex =
-          /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
-        return n.split(urlRegex).map((a) => {
-          if (a.match(/^https?:\/\//)) {
-            return this.formatLink(a);
-          }
-          return a;
-        });
-      });
-    });
-
-    return fragments;
-  }
-
-  getDiff() {
+    getDiff() {
     let diff;
     if (
       Object.keys(this.state.taggedProfiles).length > 0 &&
@@ -829,154 +622,17 @@ class NostrEmbed extends Component {
     return diff;
   }
 
-  renderNote() {
-    return (
-      <div class="nostrEmbedCard">
-        <Profile
-          profilePkey={this.state.profilePkey}
-          profile={this.state.profile}
-          options={this.props.options}
-        />
-        <div
-          class={
-            this.state.event.error
-              ? "cardContent ne-text-red-800"
-              : "cardContent"
-          }
-        >
-          {this.formatContent()}
-        </div>
-        <Meta
-          note={this.state.event}
-          likesCount={this.state.likesCount}
-          repliesCount={this.state.repliesCount}
-          repostsCount={this.state.repostsCount}
-          zapAmount={this.state.zapAmount}
-          options={this.props.options}
-        />
-      </div>
-    );
-  }
-
-  renderProfile() {
-    return (
-      <div class="nostrEmbedCard">
-        <Profile
-          profilePkey={this.state.id}
-          profile={this.state.profile}
-          options={this.props.options}
-        />
-        <div
-          class={
-            this.state.profile.error
-              ? "cardContent ne-text-red-800"
-              : "cardContent"
-          }
-        >
-          {this.state.profile?.website ? (
-            <p>
-              Website:{" "}
-              <a
-                href={this.state.profile?.website}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {this.state.profile?.website}
-              </a>
-            </p>
-          ) : (
-            ""
-          )}
-          {this.state.profile?.about || "Loading..."}
-        </div>
-        {
-          Boolean(this.state.follows.length) && <ProfileFollows follows={this.state.follows} options={this.props.options} />
-        }
-        <ProfileMeta
-          profile={this.state.profile}
-          followersCount={this.state.followersCount}
-          zapAmount={this.state.zapAmount}
-          options={this.props.options}
-        />
-      </div>
-    );
-  }
-
-  renderProfilesList() {
-    return (
-      <div class="nostrEmbedCard">
-	<Profile
-	  profilePkey={this.state.id.data.pubkey}
-	  profile={this.state.profile}
-	  options={this.props.options}
-	/>
-	<div>
-	  <h3 class="cardTitle">
-	    {this.state.kind !== KIND_CONTACT_LIST && this.state.profilesList.name
-	    ? this.state.profilesList.name
-	    : this.state.profilesList.d}
-	    {this.state.kind === KIND_CONTACT_LIST && "Following "}(
-            {this.state.taggedProfiles ? this.state.countTaggedProfiles : 0})
-	  </h3>
-	  {this.state.kind !== KIND_CONTACT_LIST && (
-            <p class="cardDescription">{this.state.profilesList.description}</p>
-	  )}
-	  <div class="cardList">
-	    {Object.keys(this.state.taggedProfiles).map((profilePkey) => {
-              return (
-		<div key={profilePkey + "taggedProfile"}>
-		  <Profile
-		    profilePkey={profilePkey}
-		    profile={this.state.taggedProfiles[profilePkey]}
-		  />
-		</div>
-              );
-	    })}
-	    {this.state.countTaggedProfiles > 0 &&
-	     this.state.countTaggedProfiles >
-            Object.keys(this.state.taggedProfiles).length ? (
-              <div class="diffProfiles">
-		And {this.getDiff()} more profiles.
-              </div>
-            ) : null}
-	  </div>
-	  {this.state.profilesList.error && (
-	    <div class="cardContent ne-text-red-800">
-	      {this.state.profilesList.content}
-	    </div>
-	  )}
-        </div>
-        <Meta
-          profilesList={this.state.profilesList}
-          likesCount={this.state.likesCount}
-          repliesCount={this.state.repliesCount}
-          repostsCount={this.state.repostsCount}
-          zapAmount={this.state.zapAmount}
-          options={this.props.options}
-        />
-      </div>
-    );
-  }
-
-  renderZap() {
-    return (
-      <div class="nostrEmbedCard">
-	Zap content: {JSON.stringify(this.state.event)}
-      </div>
-    )
-  }
-
   render() {
     switch (this.state.kind) {
       case KIND_META:
-        return this.renderProfile();
+        return <Profile  props={this.props} state={this.state}/>
       case KIND_CONTACT_LIST:
       case KIND_PROFILE_LIST:
-        return this.renderProfilesList();
+        return <ProfilesList props={this.props} state={this.state}/>
       case KIND_ZAP:
-        return this.renderZap();
+        return <Zap state={this.state}/>
       default:
-        return this.renderNote();
+        return <Note props={this.props} state={this.state}/>
     }
   }
 }

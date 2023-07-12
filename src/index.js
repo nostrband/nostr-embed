@@ -1,5 +1,5 @@
 import { h, render } from 'preact';
-import NostrEmbed from './components/nostrEmbed.jsx';
+import NostrEmbed from './main/NostrEmbed.jsx';
 
 export function init(id, wrapper, relay, options) {
 

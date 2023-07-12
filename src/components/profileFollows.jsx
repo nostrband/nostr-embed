@@ -1,4 +1,4 @@
-import { getNpub } from "../common";
+import { getNpub } from "../utils/common";
 import ProfileImage from "./profileImage.jsx";
 
 const ProfileFollows = ({ follows = [], options }) => {

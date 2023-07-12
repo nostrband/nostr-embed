@@ -1,4 +1,4 @@
-import { formatZapAmount, getNpub } from "../common";
+import { formatZapAmount, getNpub } from "../utils/common";
 import CopyText from "./copyText.jsx";
 import BoltIcon from "./icons/boltIcon.jsx";
 import FollowersIcon from "./icons/followersIcon.jsx";
@@ -13,24 +13,24 @@ function ProfileMeta({ profile, followersCount, zapAmount, options }) {
   }
 
   return (
-    <div class="cardMeta">
+    <div className="cardMeta">
       <hr />
-      <div class="cardInteractions">
+      <div className="cardInteractions">
         {options && options.showZaps ? (
           <div className="interactionContainer" title="Total sats zapped">
             <BoltIcon additionalClasses="w-5 h-5" />
             <span className="zapAmount">{formattedZapAmount}</span>
           </div>
         ) : null}
-        <div class="interactionContainer" title="Number of followers">
+        <div className="interactionContainer" title="Number of followers">
           <FollowersIcon additionalClasses="w-5 h-5" />
-          <span class="followersCount">{followersCount}</span>
+          <span className="followersCount">{followersCount}</span>
         </div>
-        <div class="interactionContainer">
+        <div className="interactionContainer">
           <a target="_blank" rel="noopener noreferrer nofollow" href={`https://nostr.band/${npub}`}
-            class="linkLink">
+            className="linkLink">
             <LinkIcon additionalClasses="w-5 h-5 hover:text-gray-600" />
-            <span class="displayText">Open</span>
+            <span className="displayText">Open</span>
           </a>
         </div>
         {options && options.showCopyAddr ? (
