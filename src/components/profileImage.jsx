@@ -1,7 +1,7 @@
-import { useState } from "preact/hooks";
+import {useState} from "preact/hooks";
 import "./style.css";
 
-function ProfileImage({ thumbnail, fullImage, isProfileImage = true }) {
+function ProfileImage({thumbnail, fullImage, additionalClass = ''}) {
   const [isFullImageLoaded, setIsFullImageLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState(thumbnail);
 
@@ -15,10 +15,12 @@ function ProfileImage({ thumbnail, fullImage, isProfileImage = true }) {
   };
 
   return imageSrc ? (
-    <img className={isProfileImage ? "profileImg " : "followedProdileImg"
-    } src={imageSrc} onError={onError} />
+    <img className={ `profileImg ${ additionalClass }` }
+         src={ imageSrc }
+         onError={ onError }
+         alt=""/>
   ) : (
-    <div class="profileWithoutImg" />
+    <div className="profileWithoutImg"/>
   );
 }
 
