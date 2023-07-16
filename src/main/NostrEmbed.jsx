@@ -33,6 +33,7 @@ class NostrEmbed extends Component {
       profilesList: {}, // 3, 30000 etc
       taggedProfiles: {},
       follows: [],
+      zap: {},
       profilePkey: "",
       likesCount: 0,
       repostsCount: 0,
@@ -280,6 +281,7 @@ class NostrEmbed extends Component {
             this.fetchMeta({socket, noteId});
             this.fetchTags({socket, tags: event.tags});
           } else if (event.kind == KIND_ZAP) {
+            this.fetchZapDetails({socket, event});
           }
         } else {
           console.log("Error: We can't find that note on this relay");
@@ -297,6 +299,22 @@ class NostrEmbed extends Component {
           },
         });
       });
+  }
+
+  fetchZapDetails({socket, event}) {
+    const senderPubkey = parseNpub(event.content.split(':')[2])
+    const recipientPubkey = event?.tags && event.tags.find((tag) => tag[0] === "p")[1]
+    const sub = {kinds: [KIND_META], authors: [senderPubkey, recipientPubkey]}
+    this.listEvents({socket, sub}).then((events) => {
+      if (events) {
+        this.setState({
+          zap: {
+            senderProfile: events[0],
+            recipientProfile: events.at(-1),
+          }
+        })
+      }
+    })
   }
 
   fetchProfile({socket, profilePkey}) {
