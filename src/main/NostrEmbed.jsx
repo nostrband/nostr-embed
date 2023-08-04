@@ -301,20 +301,46 @@ class NostrEmbed extends Component {
       });
   }
 
-  fetchZapDetails({socket, event}) {
-    const senderPubkey = parseNpub(event.content.split(':')[2])
-    const recipientPubkey = event?.tags && event.tags.find((tag) => tag[0] === "p")[1]
-    const sub = {kinds: [KIND_META], authors: [senderPubkey, recipientPubkey]}
-    this.listEvents({socket, sub}).then((events) => {
+fetchZapDetails({socket, event}) {
+    const description = JSON.parse(event.tags.find((el) => el.includes('description'))[1]);
+    const senderPubkey = description.pubkey;
+    const providerPubkey =  event.pubkey;
+    const recipientPubkey = event?.tags && event.tags.find((tag) => tag[0] === "p")[1];
+    const sub = {kinds: [KIND_META], authors: [senderPubkey, recipientPubkey, providerPubkey]};
+    const zapAmount = this.getZapAmount(event);
+    const targetEvent = event.tags.find((el) => el[0] === 'e');
+   this.listEvents({socket, sub}).then((events) => {
       if (events) {
         this.setState({
           zap: {
+            ...this.state.zap,
             senderProfile: events[0],
-            recipientProfile: events.at(-1),
+            recipientProfile: events[1],
+            providerProfile: events[2],
+            amount: zapAmount,
+            content: event.content,
           }
         })
       }
     })
+
+      if(targetEvent) {
+        const targetEventId = event.tags.find((el) => el[0] === 'e')[1];
+        const sub = {kinds: [KIND_NOTE], ids: [targetEventId]};
+        this.listEvents({socket, sub}).then((events) => {
+          if (events) {
+            this.setState({
+              zap: {
+                ...this.state.zap,
+                targetEvent: events[0]
+              }
+            })
+          }
+        })
+      }
+   
+
+  
   }
 
   fetchProfile({socket, profilePkey}) {
