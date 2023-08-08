@@ -20,7 +20,7 @@ function ProfileImage({thumbnail, fullImage, additionalClass = ''}) {
          onError={ onError }
          alt=""/>
   ) : (
-    <div className="profileWithoutImg"/>
+    <div className={`profileWithoutImg ${additionalClass === 'zapProfileImgXs' ? 'profileWithoutImgXs' : ''}`}/>
   );
 }
 
