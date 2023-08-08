@@ -303,20 +303,43 @@ class NostrEmbed extends Component {
 
 fetchZapDetails({socket, event}) {
     const description = JSON.parse(event.tags.find((el) => el.includes('description'))[1]);
-    const senderPubkey = description.pubkey;
+    const {content} = event;
+
+    const getSenderPubKey = () => {
+      if (description.pubkey === '71bfa9cbf84110de617e959021b08c69524fcaa1033ffd062abd0ae2657ba24c' &&
+      content.startsWith('From: nostr:npub1')) {
+          const npub = content.split(':')[2];
+          const key = parseNpub(npub)
+          return key
+      }
+
+      return description.pubkey
+    }
+    
+    const senderPubkey = getSenderPubKey();
+    const payerPubkey = senderPubkey !== description.pubkey ? description.pubkey : null;
     const providerPubkey =  event.pubkey;
     const recipientPubkey = event?.tags && event.tags.find((tag) => tag[0] === "p")[1];
     const sub = {kinds: [KIND_META], authors: [senderPubkey, recipientPubkey, providerPubkey]};
+
+    if(payerPubkey) {
+      sub.authors.push(payerPubkey)
+    }
+
     const zapAmount = this.getZapAmount(event);
     const targetEvent = event.tags.find((el) => el[0] === 'e');
    this.listEvents({socket, sub}).then((events) => {
       if (events) {
+        const getProfile = (profilePubkey) => {
+          return events.find((event) => event.pubkey === profilePubkey)
+        }
         this.setState({
           zap: {
             ...this.state.zap,
-            senderProfile: events[0],
-            recipientProfile: events[1],
-            providerProfile: events[2],
+            senderProfile: getProfile(senderPubkey),
+            recipientProfile: getProfile(recipientPubkey),
+            providerProfile: getProfile(providerPubkey),
+            payerProfile: getProfile(payerPubkey),
             amount: zapAmount,
             content: event.content,
           }
@@ -338,9 +361,6 @@ fetchZapDetails({socket, event}) {
           }
         })
       }
-   
-
-  
   }
 
   fetchProfile({socket, profilePkey}) {
