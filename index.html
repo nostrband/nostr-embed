@@ -190,7 +190,7 @@
 <!--   })();-->
 <!--  </script>-->
 
-  <script>
+  <!-- <script>
    !(function () {
      const n = document.createElement('script');
      n.type = 'text/javascript';
@@ -206,7 +206,30 @@
      const a = document.getElementsByTagName('script')[0];
      a.parentNode.insertBefore(n, a);
    })();
-  </script>
+  </script> -->
+  <script>
+       !(function () {
+       const n = document.createElement('script');
+       n.type = 'text/javascript';
+       n.async = !0;
+       n.src = 'nostr-embed.js';
+       n.onload = function () {
+       const options = {
+       showCopyAddr: true,
+       showZaps: true,
+       hideNostrich: false,
+       };
+       nostrEmbed.init(
+       "naddr1qqyxgdpc8qckye3hqyt8wumn8ghj7un9d3shjtnwdaehgu3wvfskueqzyrc0lpl80946sm7gfdyq0vj6thhzqmtjf3hkr25g2wt45ww7aml4sqcyqqq823c9k4ud9",
+       "#nostr-embed-2",
+       "wss://relay.nostr.band/",
+       options
+       );
+       };
+       const a = document.getElementsByTagName('script')[0];
+       a.parentNode.insertBefore(n, a);
+       })();
+       </script>
   
 </body>
 

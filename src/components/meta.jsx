@@ -14,6 +14,7 @@ function Meta({
   likesCount,
   zapAmount,
   options,
+  npub
 }) {
   let date, encodedId, formattedDate, formattedZapAmount;
 
@@ -39,6 +40,9 @@ function Meta({
   }
   if (profilesList) {
     encodedId = profilesList.id;
+  }
+  if(npub) {
+    encodedId = npub
   }
 
   formattedZapAmount = formatZapAmount(zapAmount);
@@ -72,7 +76,7 @@ function Meta({
             rel="noopener noreferrer nofollow"
             href={
               note
-                ? `https://nostr.band/${encodedId}`
+                ? `https://nostr.band/${encodedId}` : npub? `https://nostr.band/${npub}`
                 : `https://listr.lol/a/${profilesList.naddr}`
             }
             className="linkLink"
