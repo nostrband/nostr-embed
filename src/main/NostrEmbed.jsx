@@ -4,9 +4,10 @@ import {Component} from "preact";
 import {parseNaddr, parseNoteId, parseNpub,} from "../utils/common";
 import ProfilesList from "./components/ProfilesList.jsx";
 import Profile from "./components/Profile.jsx";
-import {KIND_CONTACT_LIST, KIND_META, KIND_NOTE, KIND_PROFILE_LIST, KIND_ZAP} from "../config/config";
+import {KIND_CONTACT_LIST, KIND_LONG_NOTE, KIND_META, KIND_NOTE, KIND_PROFILE_LIST, KIND_REACTION, KIND_REPOST, KIND_ZAP} from "../config/config";
 import Zap from "./components/Zap.jsx";
 import Note from "./components/Note.jsx";
+import LongNote from "./components/LongNote.jsx";
 
 class NostrEmbed extends Component {
   constructor(props) {
@@ -446,6 +447,15 @@ fetchZapDetails({socket, event}) {
             this.setState({profilesList: profilesListObj});
             this.fetchTags({socket, tags: event.tags});
             this.fetchMeta({socket, data});
+          } 
+          if (event.kind == KIND_LONG_NOTE) { 
+            const profileObj = {};
+            profileObj.created_at = event.tags.find((tag) => tag[0] === 'published_at')[1];
+            profileObj.id = `${ data.kind }:${ data.pubkey }:${ data.identifier }`;
+            profileObj.naddr = this.props.id;
+            this.setState({profileObj: profileObj});
+            this.fetchTags({socket, tags: event.tags})
+            this.fetchMeta({socket, data})
           }
         } else {
           throw "Event not found";
@@ -466,7 +476,7 @@ fetchZapDetails({socket, event}) {
   fetchTags({socket, tags}) {
     const sub = {kinds: [KIND_META], authors: []};
     let count = 0;
-
+console.log(tags);
     for (const t of tags) {
       if (sub.authors.length < 100) {
         if (t.length >= 2 && t[0] == "p") {
@@ -686,6 +696,9 @@ fetchZapDetails({socket, event}) {
                              state={ this.state }/>
       case KIND_ZAP:
         return <Zap state={ this.state }/>
+      case KIND_LONG_NOTE:
+        return <LongNote props={ this.props }
+                         state={ this.state }/>
       default:
         return <Note props={ this.props }
                      state={ this.state }/>

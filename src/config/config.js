@@ -9,3 +9,4 @@ export const KIND_REPOST = 6;
 export const KIND_REACTION = 7;
 export const KIND_ZAP = 9735;
 export const KIND_PROFILE_LIST = 30000;
+export const KIND_LONG_NOTE = 30023;
