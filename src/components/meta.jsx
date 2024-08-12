@@ -48,7 +48,7 @@ function Meta({
       <div className="cardDate">{formattedDate}</div>
       <hr />
       <div className="cardInteractions">
-        {options.options?.hideCounters && <>
+        {options?.hideCounters ? null : <>
         {options && options.showZaps ? (
           <div className="interactionContainer" title="Total sats zapped">
             <BoltIcon additionalClasses="w-5 h-5" />

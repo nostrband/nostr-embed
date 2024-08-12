@@ -16,7 +16,7 @@ function ProfileMeta({ profile, followersCount, zapAmount, options }) {
     <div className="cardMeta">
       <hr />
       <div className="cardInteractions">
-        {options.options?.hideCounters && <>
+        {options?.hideCounters ? null : <>
         {options && options.showZaps ? (
           <div className="interactionContainer" title="Total sats zapped">
             <BoltIcon additionalClasses="w-5 h-5" />

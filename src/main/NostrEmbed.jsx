@@ -609,6 +609,7 @@ class NostrEmbed extends Component {
   }
 
   fetchProfileMeta({socket, pubkey}) {
+    console.log(this.props.options?.hideCounters)
     if(this.props.options?.hideCounters) {
       return
     }
