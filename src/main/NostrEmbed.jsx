@@ -505,6 +505,10 @@ class NostrEmbed extends Component {
   }
 
   fetchMeta({socket, noteId, data}) {
+    if(this.props.options?.hideCounters) {
+      return
+    }
+
     if (socket.url.includes("wss://relay.nostr.band"))
       return this.fetchMetaCount({socket, noteId, data});
     else return this.fetchMetaList({socket, noteId, data});
@@ -605,6 +609,11 @@ class NostrEmbed extends Component {
   }
 
   fetchProfileMeta({socket, pubkey}) {
+    console.log(this.props.options?.hideCounters)
+    if(this.props.options?.hideCounters) {
+      return
+    }
+
     if (socket.url.includes("wss://relay.nostr.band"))
       return this.fetchProfileMetaCount({socket, pubkey});
     else return this.fetchProfileMetaList({socket, pubkey});
