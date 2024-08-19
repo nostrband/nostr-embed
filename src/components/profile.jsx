@@ -46,7 +46,7 @@ function Profile({ profilePkey, profile, options }) {
           <a
             target="_blank"
             rel="noopener noreferrer nofollow"
-            href={`https://heynostr.com`}
+            href={`https://njump.me`}
             className="linkLink"
           >
             <NostrichIcon additionalClasses="w-4 h-4" />
